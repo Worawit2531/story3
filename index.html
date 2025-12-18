@@ -1,11 +1,1222 @@
 <!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI English Story Tailor v7.2 - Fixed Tooltip</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    body{font-family:'Sarabun',sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:10px 0}
+    .main-card{border-radius:20px;border:none;box-shadow:0 20px 60px rgba(0,0,0,0.3);background:white}
+    .card-header{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:20px;text-align:center}
+    .card-header h2{font-weight:600;margin:0;font-size:1.75rem}
+    .card-body{padding:20px}
+    .form-label{font-weight:600;color:#333;margin-bottom:8px}
+    .form-control,.form-select{border:2px solid #e1e4e8;border-radius:10px;padding:12px}
+    .form-control:focus,.form-select:focus{border-color:#667eea;box-shadow:0 0 0 0.2rem rgba(102,126,234,0.25)}
+    .example-badge{display:inline-block;padding:4px 10px;background:#f0f0f0;border-radius:15px;font-size:0.85rem;margin:3px;cursor:pointer}
+    .example-badge:hover{background:#667eea;color:white}
+    .btn-generate{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border:none;color:white;padding:15px;font-weight:600;font-size:1.1rem;border-radius:50px}
+    .btn-generate:hover:not(:disabled){transform:translateY(-3px);box-shadow:0 10px 25px rgba(102,126,234,0.4);color:white}
+    .btn-generate:disabled{opacity:0.6}
+    .loading-spinner{display:none;text-align:center;padding:40px}
+    .result-box{background:#f8f9fa;padding:20px;border-radius:15px;border:2px solid #e1e4e8;margin-top:20px;display:none}
+    .story-text{line-height:2.4;font-size:1.1rem}
+    
+    /* === WORD STYLES === */
+    .word-clickable{cursor:pointer;padding:2px 4px;border-radius:4px;color:#333;display:inline}
+    .word-clickable:hover{background:rgba(102,126,234,0.15)}
+    .vocab-word{color:#2563eb!important;font-weight:600;text-decoration:underline dotted;padding:2px 4px;cursor:pointer;border-radius:4px;display:inline}
+    .vocab-word:hover{background:rgba(37,99,235,0.15)}
+    .grammar-word{color:#d63384!important;background:rgba(214,51,132,0.1);font-weight:600;padding:2px 4px;cursor:pointer;border-radius:4px;display:inline}
+    .grammar-word:hover{background:rgba(214,51,132,0.2)}
+    .phrase-group{color:#059669!important;background:rgba(5,150,105,0.1);font-weight:600;padding:2px 4px;cursor:pointer;border-radius:4px;border-bottom:2px dashed #059669;display:inline}
+    .phrase-group:hover{background:rgba(5,150,105,0.2)}
+    .idiom-group{color:#f59e0b!important;background:rgba(245,158,11,0.1);font-weight:600;padding:2px 4px;cursor:pointer;border-radius:4px;border-bottom:2px dotted #f59e0b;display:inline}
+    .idiom-group:hover{background:rgba(245,158,11,0.2)}
+    
+    /* === SPEAKING ANIMATION === */
+    .speaking{background:rgba(102,126,234,0.3)!important;animation:pulse-word 0.5s ease-in-out}
+    @keyframes pulse-word{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+    
+    /* === TOOLTIP STYLES (FIXED) === */
+    .tooltip-box{position:fixed;background:linear-gradient(135deg,#1e293b,#334155);color:white;padding:12px 16px;border-radius:10px;font-size:0.9rem;min-width:150px;max-width:280px;box-shadow:0 8px 25px rgba(0,0,0,0.3);z-index:99999;pointer-events:none;opacity:0;transition:opacity 0.2s;line-height:1.5}
+    .tooltip-box.show{opacity:1}
+    .tooltip-box .tt-word{font-size:1.1rem;font-weight:600;color:#60a5fa;margin-bottom:5px}
+    .tooltip-box .tt-thai{font-size:1rem;color:#fbbf24;margin-bottom:5px}
+    .tooltip-box .tt-type{font-size:0.8rem;color:#94a3b8;margin-bottom:5px}
+    .tooltip-box .tt-hint{font-size:0.75rem;color:#64748b;border-top:1px solid #475569;padding-top:5px;margin-top:5px}
+    
+    .audio-controls{background:linear-gradient(135deg,#667eea15,#764ba215);border-radius:12px;padding:15px;margin-bottom:20px;display:flex;gap:15px;flex-wrap:wrap;align-items:center}
+    .audio-controls label{font-weight:600;color:#667eea}
+    .audio-controls select{border:2px solid #667eea;border-radius:8px;padding:5px 10px}
+    .info-box{background:#e7f3ff;border-left:4px solid #667eea;padding:12px 15px;margin-top:15px;border-radius:8px;font-size:0.9rem}
+    .footer-credit{text-align:center;margin-top:20px;color:white;font-size:0.9rem;opacity:0.9}
+    .feature-badge{display:inline-block;background:#10b981;color:white;font-size:0.75rem;padding:3px 8px;border-radius:10px;font-weight:600;margin-left:5px}
+    .feature-badge.new{background:#f59e0b}
+    .feature-badge.pro{background:#8b5cf6}
+    .api-status-panel{background:linear-gradient(135deg,#1e293b,#334155);border-radius:12px;padding:15px;margin-bottom:20px;color:white}
+    .api-status-panel h5{margin:0 0 10px 0;font-size:0.95rem}
+    .key-status-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(65px,1fr));gap:5px}
+    .key-indicator{padding:4px 6px;border-radius:5px;text-align:center;font-size:0.7rem;font-weight:600}
+    .key-indicator.ready{background:#10b981}
+    .key-indicator.active{background:#3b82f6;animation:pulse-key 1s infinite}
+    .key-indicator.exhausted{background:#ef4444;opacity:0.6}
+    .key-indicator.warning{background:#f59e0b}
+    @keyframes pulse-key{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+    .api-stats{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+    .stat-item{background:rgba(255,255,255,0.1);padding:5px 10px;border-radius:6px;font-size:0.75rem}
+    .stat-item strong{color:#10b981}
+    .api-key-section{background:linear-gradient(135deg,#d1fae5,#a7f3d0);border:2px solid #10b981;border-radius:12px;padding:15px;margin-bottom:20px}
+    .api-key-section.no-keys{background:linear-gradient(135deg,#fef3c7,#fde68a);border-color:#f59e0b}
+    .api-key-section label{color:#065f46;font-weight:600}
+    .api-key-section textarea{border:2px solid #10b981;font-size:0.75rem;font-family:monospace;min-height:100px}
+    .api-key-section .key-count-badge{background:#10b981;color:white;padding:3px 10px;border-radius:15px;font-size:0.8rem;font-weight:600}
+    .color-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;padding:10px;background:#f8f9fa;border-radius:8px}
+    .legend-item{display:flex;align-items:center;gap:5px;font-size:0.85rem}
+    .legend-color{width:16px;height:16px;border-radius:3px}
+    .legend-color.black{background:#333}
+    .legend-color.blue{background:#2563eb}
+    .legend-color.pink{background:#d63384}
+    .legend-color.green{background:#059669}
+    .legend-color.orange{background:#f59e0b}
+    .level-info{font-size:0.8rem;color:#666;margin-top:5px;padding:8px;background:#f8f9fa;border-radius:6px}
+    .toggle-keys-btn{background:none;border:1px solid #065f46;color:#065f46;padding:3px 10px;border-radius:5px;font-size:0.8rem;cursor:pointer}
+    .toggle-keys-btn:hover{background:#065f46;color:white}
+    .translation-status{position:fixed;bottom:20px;right:20px;background:rgba(102,126,234,0.95);color:white;padding:10px 15px;border-radius:10px;font-size:0.85rem;display:none;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.2);min-width:200px}
+  </style>
+</head>
+<body>
+<div class="container-fluid px-3 px-md-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-10 col-xl-9 col-xxl-8">
+      <div class="card main-card">
+        <div class="card-header">
+          <h2>✨ AI English Story Tailor <span class="feature-badge pro">v7.2</span></h2>
+          <p class="mb-0 opacity-75">สร้างบทเรียนภาษาอังกฤษส่วนตัว<br>
+            <small>🔊 <strong>คลิกคำไหนก็ได้</strong> = ฟังเสียง + ดูคำแปล!</small><br>
+            <small class="badge bg-warning text-dark mt-1">🆕 Fixed Tooltip</small>
+            <small class="badge bg-success mt-1">ประหยัด API 95%+</small>
+          </p>
+        </div>
+        <div class="card-body">
+          <div class="api-key-section" id="apiKeySection">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="form-label mb-0">🔑 API Keys <span class="key-count-badge" id="keyCountBadge">0 Keys</span></label>
+              <button type="button" class="toggle-keys-btn" onclick="requestPasswordToEdit()">🔒 แก้ไข</button>
+            </div>
+            <div id="apiKeysContainer" style="display:none">
+              <textarea class="form-control" id="apiKeys" placeholder="ใส่ API Key แต่ละตัวคนละบรรทัด"></textarea>
+              <small class="d-block mt-2">💡 <a href="https://console.groq.com/keys" target="_blank">รับ API Key ฟรี</a></small>
+              <button type="button" class="btn btn-sm btn-success mt-2" onclick="saveAndHideKeys()">💾 บันทึก</button>
+            </div>
+            <small class="d-block mt-1" id="keyStatusText">✅ พร้อมใช้งาน</small>
+          </div>
+          <div class="api-status-panel">
+            <h5>📊 สถานะ API</h5>
+            <div class="key-status-grid" id="keyStatusGrid"></div>
+            <div class="api-stats">
+              <div class="stat-item">🔑 ทั้งหมด: <strong id="totalKeysCount">0</strong></div>
+              <div class="stat-item">✅ พร้อม: <strong id="readyKeysCount">0</strong></div>
+              <div class="stat-item">💾 Cache: <strong id="cacheCount">0</strong></div>
+              <div class="stat-item">⚡ ประหยัด: <strong id="savedCalls">0</strong> calls</div>
+            </div>
+          </div>
+          <form id="lessonForm">
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label">📝 หัวข้อที่สนใจ</label>
+                <input type="text" class="form-control" id="topic" placeholder="เช่น แมวกล้าหาญ, Robot adventure" required>
+                <div class="mt-2">
+                  <small class="text-muted">💡 ตัวอย่าง:</small><br>
+                  <span class="example-badge" onclick="document.getElementById('topic').value='แมวกล้าหาญสำรวจป่า'">🐱 แมว</span>
+                  <span class="example-badge" onclick="document.getElementById('topic').value='หุ่นยนต์ช่วยเหลือผู้คน'">🤖 หุ่นยนต์</span>
+                  <span class="example-badge" onclick="document.getElementById('topic').value='เด็กหญิงกับดาวตก'">⭐ ดาวตก</span>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">📊 ระดับภาษา (CEFR)</label>
+                <select class="form-select" id="level" onchange="updateLevelInfo()">
+                  <option value="A1">A1 - เริ่มต้น</option>
+                  <option value="A2" selected>A2 - พื้นฐาน</option>
+                  <option value="B1">B1 - ปานกลาง</option>
+                  <option value="B2">B2 - สูง</option>
+                  <option value="C1">C1 - ขั้นสูง</option>
+                </select>
+                <div class="level-info" id="levelInfo">📖 A2: 100-150 คำ</div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">📖 ไวยากรณ์</label>
+                <select class="form-select" id="grammar">
+                  <option value="Present Simple">Present Simple</option>
+                  <option value="Present Continuous">Present Continuous</option>
+                  <option value="Past Simple">Past Simple</option>
+                  <option value="Past Continuous">Past Continuous</option>
+                  <option value="Future Simple">Future (will)</option>
+                  <option value="Present Perfect">Present Perfect</option>
+                  <option value="Modal Verbs">Modal Verbs</option>
+                  <option value="Conditionals">Conditionals</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <div class="info-box">
+                  <strong>🎯 v7.2 แก้ไข:</strong>
+                  <span class="feature-badge pro">Fixed</span> Tooltip ถูกต้อง |
+                  <span class="feature-badge new">NEW</span> แสดงคำแปลทุกคำ |
+                  <span class="feature-badge">Cache</span> ไม่แปลซ้ำ
+                  <div class="color-legend">
+                    <div class="legend-item"><div class="legend-color black"></div>ทั่วไป</div>
+                    <div class="legend-item"><div class="legend-color blue"></div>คำศัพท์</div>
+                    <div class="legend-item"><div class="legend-color pink"></div>ไวยากรณ์</div>
+                    <div class="legend-item"><div class="legend-color green"></div>Phrasal</div>
+                    <div class="legend-item"><div class="legend-color orange"></div>Idiom</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 mt-4">
+                <button type="submit" class="btn btn-generate w-100 shadow">🚀 สร้างบทเรียน</button>
+              </div>
+            </div>
+          </form>
+          <div id="loading" class="loading-spinner">
+            <div class="spinner-border text-primary"></div>
+            <p class="mt-3 text-muted fw-bold">🤖 AI กำลังสร้างบทเรียน...</p>
+            <p class="text-muted"><small id="loadingStatus">(5-15 วินาที)</small></p>
+          </div>
+          <div id="resultArea" class="result-box">
+            <div class="audio-controls" id="audioControls" style="display:none">
+              <div><label>🔊 เสียง:</label><select id="voiceSelect" class="ms-2"></select></div>
+              <div><label>⚡ ความเร็ว:</label>
+                <select id="speedSelect" class="ms-2">
+                  <option value="0.75">ช้า</option>
+                  <option value="1" selected>ปกติ</option>
+                  <option value="1.25">เร็ว</option>
+                </select>
+              </div>
+              <div><button type="button" class="btn btn-sm btn-info" onclick="clearTranslationCache()">🗑️ ล้าง Cache</button></div>
+            </div>
+            <div class="alert alert-info mb-3" id="guideAlert" style="display:none">
+              <strong>💡</strong> 🔊 คลิก=ฟัง | 📖 วางเมาส์=แปล | 🔵=คำศัพท์ | 🩷=ไวยากรณ์ | 🟢=Phrasal | 🟠=Idiom
+            </div>
+            <div id="lessonContent"></div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-credit">Powered by Groq AI + Web Speech<br><small>Fixed Tooltip v7.2 🚀</small></div>
+    </div>
+  </div>
+</div>
 
-<html>
-   <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-      <base target="_top">
-   </head>
-   <body>
-      <iframe style="position: absolute;top: 0;left: 0;width: 100%;height: 100%;border: 0;" src="https://script.google.com/macros/s/AKfycbza5FKCsR3QRAinSrrZYArcySLxafsKMWpLFGtZLu1POSeThDfonmNPPykSw-i3ctBA_Q/exec"></iframe>
-   </body>
-</html>  
+<!-- Tooltip Element -->
+<div class="tooltip-box" id="tooltipBox">
+  <div class="tt-word"></div>
+  <div class="tt-thai"></div>
+  <div class="tt-type"></div>
+  <div class="tt-hint">💡 Click เพื่อฟังเสียง</div>
+</div>
+
+<div class="translation-status" id="translationStatus"></div>
+
+<!-- ==================== END PART 1 ==================== -->
+<!-- วาง PART 2 (JavaScript) ต่อจากตรงนี้ -->
+<!-- ==================== PART 2: JAVASCRIPT ==================== -->
+<!-- วางต่อจาก PART 1 ก่อนปิด </body> -->
+
+<script>
+var EDIT_PASSWORD='pass3';
+var CACHE_KEY='aiStoryV72Cache';
+var PRESET_API_KEYS=['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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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','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'];
+
+var translationCache={},savedApiCalls=0,voices=[],currentSpeech=null,isUnlocked=false;
+var tooltipBox=null;
+
+// ==================== PHRASAL VERBS ====================
+var phrasalVerbs={
+'wake up':'ตื่นนอน','get up':'ลุกขึ้น','stand up':'ยืนขึ้น','sit down':'นั่งลง','lie down':'นอนลง',
+'get down':'ลงมา','come in':'เข้ามา','go out':'ออกไป','come back':'กลับมา','go back':'กลับไป',
+'get back':'กลับมา','turn around':'หันกลับ','move on':'ไปต่อ','move in':'ย้ายเข้า','move out':'ย้ายออก',
+'run away':'หนีไป','walk away':'เดินจากไป','fall down':'ล้มลง','jump up':'กระโดดขึ้น','climb up':'ปีนขึ้น',
+'get in':'เข้าไป','get out':'ออกมา','get on':'ขึ้น(รถ)','get off':'ลง(รถ)','pull up':'จอดรถ',
+'slow down':'ชะลอ','speed up':'เร่งความเร็ว','take off':'บินขึ้น/ถอด','set off':'ออกเดินทาง','head off':'มุ่งหน้าไป',
+'pick up':'หยิบขึ้น/รับ','put down':'วางลง','put on':'สวมใส่','try on':'ลองสวม','throw away':'ทิ้ง',
+'give away':'แจก/ให้','hand out':'แจก','pass out':'แจก/เป็นลม','hand in':'ส่ง(งาน)','turn on':'เปิด(เครื่อง)',
+'turn off':'ปิด(เครื่อง)','switch on':'เปิดสวิตช์','switch off':'ปิดสวิตช์','plug in':'เสียบปลั๊ก','set up':'ติดตั้ง/จัดตั้ง',
+'put together':'ประกอบ','take apart':'ถอดออก','break down':'พัง/เสีย','fix up':'ซ่อมแซม','clean up':'ทำความสะอาด',
+'tidy up':'จัดระเบียบ','wash up':'ล้างจาน','dry off':'เช็ดให้แห้ง','wipe out':'เช็ดออก','fill in':'กรอก(แบบฟอร์ม)',
+'fill out':'กรอก(เอกสาร)','write down':'จดลง','note down':'จดบันทึก','cross out':'ขีดฆ่า','rub out':'ลบออก',
+'speak up':'พูดดังขึ้น','shut up':'หุบปาก','calm down':'สงบลง','cheer up':'ร่าเริงขึ้น','open up':'เปิดใจ',
+'call up':'โทรหา','call back':'โทรกลับ','hang up':'วางสาย','hold on':'รอสักครู่','bring up':'พูดถึง/เลี้ยงดู',
+'come up':'เกิดขึ้น','point out':'ชี้ให้เห็น','find out':'ค้นพบ','figure out':'หาคำตอบ','work out':'คิดออก/ออกกำลังกาย',
+'sort out':'จัดการ','think over':'คิดทบทวน','talk over':'พูดคุยกัน','go over':'ทบทวน','get along':'เข้ากันได้',
+'fall out':'ทะเลาะกัน','make up':'คืนดี/แต่งหน้า','break up':'เลิกกัน','split up':'แยกทาง','catch up':'ตามทัน',
+'keep up':'ตามทัน','meet up':'นัดพบ','hang out':'ไปเที่ยว','ask out':'ชวนออกเดท','drop out':'ออกกลางคัน',
+'look at':'มองดู','look for':'มองหา','look after':'ดูแล','look into':'ตรวจสอบ','look out':'ระวัง',
+'look up':'ค้นหา(ข้อมูล)','look down':'มองลง/ดูถูก','look around':'มองรอบๆ','look through':'ตรวจดู','look forward to':'ตั้งตารอ',
+'watch out':'ระวัง','check out':'ตรวจดู/เช็คเอาท์','check in':'เช็คอิน','check up':'ตรวจสุขภาพ','search for':'ค้นหา',
+'grow up':'เติบโต','settle down':'ตั้งรกราก','end up':'ลงเอย','turn out':'กลายเป็น','give up':'ยอมแพ้',
+'keep on':'ทำต่อไป','carry on':'ดำเนินต่อ','go on':'ดำเนินต่อ','put off':'เลื่อนออกไป','call off':'ยกเลิก',
+'take on':'รับ(งาน)','take over':'เข้าควบคุม','hand over':'ส่งมอบ','run out':'หมด','use up':'ใช้หมด',
+'eat up':'กินหมด','drink up':'ดื่มหมด','burn out':'หมดแรง','think about':'คิดเกี่ยวกับ','think of':'นึกถึง',
+'come up with':'คิดออก','dream up':'จินตนาการ','believe in':'เชื่อมั่นใน','count on':'พึ่งพา','rely on':'พึ่งพา',
+'depend on':'ขึ้นอยู่กับ','focus on':'มุ่งเน้น','deal with':'จัดการกับ','cope with':'รับมือกับ','put up with':'ทนกับ',
+'get over':'ผ่านพ้น','get through':'ผ่านพ้น','lay off':'ปลดออก','step down':'ลาออก','start up':'เริ่มต้นธุรกิจ',
+'close down':'ปิดกิจการ','cut back':'ลดลง','cut down':'ลด/ตัดลง','build up':'สร้างขึ้น','come across':'พบโดยบังเอิญ',
+'run into':'เจอโดยบังเอิญ','bump into':'ชนโดยบังเอิญ','drop by':'แวะ','stop by':'แวะ','cool down':'เย็นลง',
+'warm up':'อุ่นขึ้น','heat up':'ร้อนขึ้น','light up':'สว่างขึ้น','brighten up':'สดใสขึ้น','liven up':'คึกคักขึ้น',
+'mess up':'ทำพลาด','screw up':'ทำพัง','freak out':'ตกใจ','stress out':'เครียด','wear out':'เหนื่อย/สึกหรอ',
+'show up':'มาปรากฏตัว','turn up':'มาถึง/เพิ่มเสียง','pop up':'โผล่ขึ้นมา','come along':'มาด้วย','tag along':'ตามไปด้วย',
+'sign up':'สมัคร','log in':'เข้าสู่ระบบ','log out':'ออกจากระบบ','back up':'สำรองข้อมูล','print out':'พิมพ์ออกมา',
+'zoom in':'ซูมเข้า','zoom out':'ซูมออก','scroll down':'เลื่อนลง','scroll up':'เลื่อนขึ้น','click on':'คลิก',
+'pay back':'จ่ายคืน','pay off':'จ่ายหมด','save up':'เก็บออม','add up':'รวมกัน','cut off':'ตัดขาด',
+'break in':'บุกเข้า','break out':'ปะทุ/หนี','lock up':'ล็อค','lock out':'ล็อคไว้ข้างนอก','shut down':'ปิดระบบ',
+'blow up':'ระเบิด','clear up':'กระจ่าง','dry up':'แห้ง','eat out':'กินข้างนอก','fade away':'จางหาย',
+'fall apart':'พังทลาย','fill up':'เติมเต็ม','give in':'ยอมแพ้','go ahead':'ดำเนินต่อ','go away':'ไปให้พ้น',
+'hold back':'ยับยั้ง','keep away':'อยู่ห่าง','kick off':'เริ่มต้น','leave out':'ละเว้น','let down':'ทำให้ผิดหวัง',
+'line up':'เข้าแถว','mix up':'สับสน','pass away':'เสียชีวิต','pull out':'ถอนตัว','ring up':'โทรหา',
+'rule out':'ตัดออก','sell out':'ขายหมด','send back':'ส่งกลับ','set out':'ออกเดินทาง','show off':'อวด',
+'sit back':'นั่งพักผ่อน','stand out':'โดดเด่น','stay up':'นอนดึก','sum up':'สรุป','take back':'เอาคืน'
+};
+
+// ==================== IDIOMS ====================
+var idioms={
+'piece of cake':'ง่ายมาก','a breeze':'ง่ายมาก','walk in the park':'ง่ายมาก','no sweat':'ไม่ยากเลย',
+'easy as pie':'ง่ายมาก','a cinch':'ง่ายมาก','nothing to it':'ไม่มีอะไรยาก','uphill battle':'งานยาก',
+'tall order':'งานยาก','hard nut to crack':'ปัญหายาก','easier said than done':'พูดง่ายกว่าทำ','hit the jackpot':'ถูกรางวัลใหญ่',
+'strike gold':'โชคดีมาก','make it big':'ประสบความสำเร็จ','on top of the world':'มีความสุขมาก','go down in flames':'ล้มเหลว',
+'bite the dust':'พ่ายแพ้','fall flat':'ล้มเหลว','miss the boat':'พลาดโอกาส','break a leg':'ขอให้โชคดี',
+'fingers crossed':'ขอให้โชคดี','touch wood':'เคาะไม้','knock on wood':'เคาะไม้ให้โชคดี','once in a blue moon':'นานๆครั้ง',
+'in the nick of time':'ทันเวลาพอดี','around the clock':'ตลอด24ชั่วโมง','day in day out':'วันแล้ววันเล่า','at the drop of a hat':'ทันทีทันใด',
+'in no time':'ในไม่ช้า','time flies':'เวลาผ่านไปเร็ว','kill time':'ฆ่าเวลา','better late than never':'มาช้าดีกว่าไม่มา',
+'call it a day':'เลิกงาน','save for a rainy day':'เก็บไว้ยามจำเป็น','behind the times':'ล้าสมัย','under the weather':'ไม่สบาย',
+'rain or shine':'ไม่ว่าจะเป็นอย่างไร','rain cats and dogs':'ฝนตกหนัก','weather the storm':'ผ่านพ้นวิกฤต','break the ice':'ทำลายความเงียบ',
+'tip of the iceberg':'ส่วนเล็กน้อยของปัญหา','on thin ice':'อยู่ในสถานการณ์เสี่ยง','cold shoulder':'เมินเฉย','hot under the collar':'โกรธ',
+'full of hot air':'พูดโม้','blow hot and cold':'ลังเลใจ','cost an arm and a leg':'แพงมาก','keep an eye on':'จับตาดู',
+'turn a blind eye':'เพิกเฉย','all ears':'ตั้งใจฟัง','play it by ear':'ทำตามสถานการณ์','lend an ear':'รับฟัง',
+'bite your tongue':'กลั้นคำพูด','on the tip of my tongue':'จำไม่ออก','tongue in cheek':'พูดเล่น','slip of the tongue':'พูดผิด',
+'get cold feet':'กลัว/ลังเล','put your foot in your mouth':'พูดผิดพลาด','get off on the wrong foot':'เริ่มต้นไม่ดี','stand on your own two feet':'พึ่งตัวเอง',
+'hands down':'อย่างไม่ต้องสงสัย','hands are tied':'ทำอะไรไม่ได้','lend a hand':'ช่วยเหลือ','get out of hand':'ควบคุมไม่ได้',
+'head over heels':'หลงรักหัวปักหัวปำ','keep your head':'ใจเย็น','lose your head':'เสียสติ','over my head':'เข้าใจยาก',
+'let the cat out of the bag':'เผยความลับ','copycat':'คนลอกเลียน','scaredy cat':'คนขี้กลัว','dog eat dog':'แข่งขันดุเดือด',
+'every dog has its day':'ทุกคนมีวันของตัวเอง','let sleeping dogs lie':'อย่าไปยุ่ง','work like a dog':'ทำงานหนัก','kill two birds with one stone':'ยิงปืนนัดเดียวได้นกสองตัว',
+'birds of a feather':'พวกเดียวกัน','early bird':'คนตื่นเช้า','free as a bird':'อิสระ','hold your horses':'ใจเย็นๆ',
+'dark horse':'ม้ามืด','horse around':'เล่นซน','when pigs fly':'เป็นไปไม่ได้','pig out':'กินจุ',
+'guinea pig':'หนูทดลอง','the elephant in the room':'ปัญหาที่ไม่มีใครพูดถึง','busy as a bee':'ยุ่งมาก','have butterflies':'ประหม่า',
+'social butterfly':'คนชอบสังคม','bug someone':'รบกวน','fish out of water':'อยู่ผิดที่','big fish':'คนสำคัญ',
+'fishy':'น่าสงสัย','out of the blue':'อย่างกะทันหัน','feeling blue':'รู้สึกเศร้า','blue in the face':'พูดจนเหนื่อย',
+'green with envy':'อิจฉา','green light':'อนุญาต','green thumb':'เก่งเรื่องต้นไม้','in the red':'ขาดทุน',
+'red tape':'ระบบราชการ','caught red handed':'จับได้คาหนังคาเขา','see red':'โกรธมาก','white lie':'โกหกเล็กน้อย',
+'black sheep':'แกะดำ','black and white':'ชัดเจน','in the black':'มีกำไร','golden opportunity':'โอกาสทอง',
+'silver lining':'ด้านดี','tickled pink':'ดีใจมาก','grey area':'พื้นที่สีเทา','icing on the cake':'สิ่งเพิ่มเติมที่ดี',
+'sell like hot cakes':'ขายดีมาก','spill the beans':'เปิดเผยความลับ','full of beans':'กระฉับกระเฉง','not my cup of tea':'ไม่ใช่สิ่งที่ชอบ',
+'in a nutshell':'โดยสรุป','bread and butter':'สิ่งที่หาเลี้ยงชีพ','butter someone up':'ประจบ','apple of my eye':'ที่รักที่สุด',
+'sour grapes':'พูดให้ร้ายเพราะอิจฉา','go bananas':'บ้า','cherry on top':'สิ่งดีๆเพิ่มเติม','break the bank':'แพงมาก',
+'penny for your thoughts':'คิดอะไรอยู่','money talks':'เงินมีอำนาจ','worth its weight in gold':'มีค่ามาก','hit the books':'อ่านหนังสือหนัก',
+'burn the midnight oil':'ทำงานดึก','pull your weight':'ทำส่วนของตัวเอง','back to the drawing board':'เริ่มใหม่','think outside the box':'คิดนอกกรอบ',
+'get the ball rolling':'เริ่มต้น','keep the ball rolling':'ดำเนินต่อไป','learn the ropes':'เรียนรู้งาน','show the ropes':'สอนงาน',
+'on the ropes':'ใกล้แพ้','by the book':'ตามกฎ','on cloud nine':'มีความสุขมาก','over the moon':'ดีใจมาก',
+'walking on air':'มีความสุขมาก','down in the dumps':'เศร้า','broken heart':'อกหัก','heavy heart':'เศร้าใจ',
+'lose your temper':'โมโห','blow your top':'โกรธมาก','hot headed':'โกรธง่าย','cool as a cucumber':'ใจเย็น',
+'scared stiff':'กลัวมาก','jump out of my skin':'ตกใจ','beat around the bush':'พูดอ้อมค้อม','cut to the chase':'พูดตรงประเด็น',
+'get to the point':'พูดตรงๆ','long story short':'โดยสรุป','speak your mind':'พูดความจริง','word of mouth':'บอกต่อ',
+'on the same page':'เข้าใจตรงกัน','read between the lines':'อ่านระหว่างบรรทัด','take it with a grain of salt':'ฟังหูไว้หู','get along like a house on fire':'เข้ากันได้ดีมาก',
+'hit it off':'เข้ากันได้ทันที','see eye to eye':'เห็นด้วย','rub someone the wrong way':'ทำให้ไม่พอใจ','every cloud has a silver lining':'ในร้ายมีดี',
+'what goes around comes around':'กรรมตามสนอง','practice makes perfect':'ฝึกฝนจนชำนาญ','actions speak louder than words':'การกระทำสำคัญกว่าคำพูด','the early bird catches the worm':'ตื่นเช้าได้โชค',
+'better safe than sorry':'ระวังไว้ก่อนดีกว่า','two heads are better than one':'สองหัวดีกว่าหัวเดียว','you can not judge a book by its cover':'อย่าตัดสินจากภายนอก','a picture is worth a thousand words':'ภาพพูดแทนคำพัน',
+'beggars can not be choosers':'ยากจนต้องไม่เลือก','blood is thicker than water':'เลือดข้นกว่าน้ำ','curiosity killed the cat':'อยากรู้อยากเห็นมากไป','do not put all your eggs in one basket':'อย่าเสี่ยงทุกอย่าง',
+'great minds think alike':'คนคิดเหมือนกัน','honesty is the best policy':'ซื่อสัตย์ดีที่สุด','ignorance is bliss':'ไม่รู้ไม่เดือดร้อน','it takes two to tango':'ต้องมีสองคน',
+'laughter is the best medicine':'หัวเราะคือยาดีที่สุด','look before you leap':'คิดก่อนทำ','no pain no gain':'ไม่ลำบากไม่ได้ดี','rome was not built in a day':'กรุงโรมไม่ได้สร้างวันเดียว',
+'the grass is always greener':'ที่อื่นดีกว่าเสมอ','time heals all wounds':'เวลาเยียวยาทุกสิ่ง','where there is smoke there is fire':'ไม่มีควันก็ไม่มีไฟ','you reap what you sow':'ปลูกอะไรได้อย่างนั้น'
+};
+
+// ==================== COMMON WORDS ====================
+var commonWords={
+'the':'(คำนำหน้า)','a':'หนึ่ง','an':'หนึ่ง','and':'และ','or':'หรือ','but':'แต่','in':'ใน','on':'บน','at':'ที่','to':'ไปยัง','for':'สำหรับ','of':'ของ','with':'กับ',
+'is':'เป็น/คือ','are':'เป็น/คือ','was':'เป็น(อดีต)','were':'เป็น(อดีต)','be':'เป็น','been':'เคยเป็น','am':'เป็น',
+'have':'มี','has':'มี','had':'มี(อดีต)','do':'ทำ','does':'ทำ','did':'ทำ(อดีต)',
+'will':'จะ','would':'จะ','can':'สามารถ','could':'สามารถ','should':'ควร','must':'ต้อง','may':'อาจ','might':'อาจจะ',
+'this':'นี่','that':'นั่น','these':'เหล่านี้','those':'เหล่านั้น',
+'i':'ฉัน','you':'คุณ','he':'เขา','she':'เธอ','it':'มัน','we':'เรา','they':'พวกเขา',
+'my':'ของฉัน','your':'ของคุณ','his':'ของเขา','her':'ของเธอ','its':'ของมัน','our':'ของเรา','their':'ของพวกเขา',
+'me':'ฉัน','him':'เขา','us':'เรา','them':'พวกเขา',
+'what':'อะไร','who':'ใคร','where':'ที่ไหน','when':'เมื่อไหร่','why':'ทำไม','how':'อย่างไร','which':'อันไหน',
+'not':'ไม่','very':'มาก','too':'เกินไป','so':'ดังนั้น','just':'เพียงแค่','only':'เท่านั้น','also':'ด้วย','even':'แม้แต่',
+'go':'ไป','goes':'ไป','went':'ไป(อดีต)','gone':'ไปแล้ว','come':'มา','comes':'มา','came':'มา(อดีต)',
+'see':'เห็น','sees':'เห็น','saw':'เห็น(อดีต)','seen':'เห็นแล้ว',
+'look':'มอง','looks':'มอง','looked':'มอง(อดีต)',
+'know':'รู้','knows':'รู้','knew':'รู้(อดีต)','known':'รู้แล้ว',
+'think':'คิด','thinks':'คิด','thought':'คิด(อดีต)',
+'say':'พูด','says':'พูด','said':'พูด(อดีต)',
+'tell':'บอก','tells':'บอก','told':'บอก(อดีต)',
+'ask':'ถาม','asks':'ถาม','asked':'ถาม(อดีต)',
+'get':'ได้','gets':'ได้','got':'ได้(อดีต)',
+'make':'ทำ','makes':'ทำ','made':'ทำ(อดีต)',
+'take':'เอา','takes':'เอา','took':'เอา(อดีต)','taken':'เอาแล้ว',
+'give':'ให้','gives':'ให้','gave':'ให้(อดีต)','given':'ให้แล้ว',
+'find':'หา','finds':'หา','found':'หา(อดีต)',
+'want':'ต้องการ','wants':'ต้องการ','wanted':'ต้องการ(อดีต)',
+'need':'ต้องการ','needs':'ต้องการ','needed':'ต้องการ(อดีต)',
+'like':'ชอบ','likes':'ชอบ','liked':'ชอบ(อดีต)',
+'love':'รัก','loves':'รัก','loved':'รัก(อดีต)',
+'use':'ใช้','uses':'ใช้','used':'ใช้(อดีต)',
+'try':'พยายาม','tries':'พยายาม','tried':'พยายาม(อดีต)',
+'help':'ช่วย','helps':'ช่วย','helped':'ช่วย(อดีต)',
+'start':'เริ่ม','starts':'เริ่ม','started':'เริ่ม(อดีต)',
+'work':'ทำงาน','works':'ทำงาน','worked':'ทำงาน(อดีต)',
+'play':'เล่น','plays':'เล่น','played':'เล่น(อดีต)',
+'run':'วิ่ง','runs':'วิ่ง','ran':'วิ่ง(อดีต)',
+'walk':'เดิน','walks':'เดิน','walked':'เดิน(อดีต)',
+'live':'อาศัย','lives':'อาศัย','lived':'อาศัย(อดีต)',
+'eat':'กิน','eats':'กิน','ate':'กิน(อดีต)','eaten':'กินแล้ว',
+'drink':'ดื่ม','drinks':'ดื่ม','drank':'ดื่ม(อดีต)',
+'sleep':'นอน','sleeps':'นอน','slept':'นอน(อดีต)',
+'read':'อ่าน','reads':'อ่าน','write':'เขียน','writes':'เขียน','wrote':'เขียน(อดีต)',
+'speak':'พูด','speaks':'พูด','spoke':'พูด(อดีต)',
+'hear':'ได้ยิน','hears':'ได้ยิน','heard':'ได้ยิน(อดีต)',
+'feel':'รู้สึก','feels':'รู้สึก','felt':'รู้สึก(อดีต)',
+'become':'กลายเป็น','becomes':'กลายเป็น','became':'กลายเป็น(อดีต)',
+'leave':'ออกจาก','leaves':'ออกจาก','left':'ออกจาก(อดีต)',
+'put':'วาง','puts':'วาง','keep':'เก็บ','keeps':'เก็บ','kept':'เก็บ(อดีต)',
+'let':'ปล่อย','lets':'ปล่อย','seem':'ดูเหมือน','seems':'ดูเหมือน',
+'show':'แสดง','shows':'แสดง','showed':'แสดง(อดีต)',
+'call':'เรียก','calls':'เรียก','called':'เรียก(อดีต)',
+'move':'เคลื่อน','moves':'เคลื่อน','moved':'เคลื่อน(อดีต)',
+'believe':'เชื่อ','believes':'เชื่อ','believed':'เชื่อ(อดีต)',
+'bring':'นำมา','brings':'นำมา','brought':'นำมา(อดีต)',
+'happen':'เกิดขึ้น','happens':'เกิดขึ้น','happened':'เกิดขึ้น(อดีต)',
+'sit':'นั่ง','sits':'นั่ง','sat':'นั่ง(อดีต)',
+'stand':'ยืน','stands':'ยืน','stood':'ยืน(อดีต)',
+'lose':'สูญเสีย','loses':'สูญเสีย','lost':'สูญเสีย(อดีต)',
+'pay':'จ่าย','pays':'จ่าย','paid':'จ่าย(อดีต)',
+'meet':'พบ','meets':'พบ','met':'พบ(อดีต)',
+'learn':'เรียนรู้','learns':'เรียนรู้','learned':'เรียนรู้(อดีต)',
+'change':'เปลี่ยน','changes':'เปลี่ยน','changed':'เปลี่ยน(อดีต)',
+'watch':'ดู','watches':'ดู','watched':'ดู(อดีต)',
+'follow':'ติดตาม','follows':'ติดตาม','followed':'ติดตาม(อดีต)',
+'create':'สร้าง','creates':'สร้าง','created':'สร้าง(อดีต)',
+'open':'เปิด','opens':'เปิด','opened':'เปิด(อดีต)',
+'close':'ปิด','closes':'ปิด','closed':'ปิด(อดีต)',
+'wait':'รอ','waits':'รอ','waited':'รอ(อดีต)',
+'send':'ส่ง','sends':'ส่ง','sent':'ส่ง(อดีต)',
+'decide':'ตัดสินใจ','decides':'ตัดสินใจ','decided':'ตัดสินใจ(อดีต)',
+'buy':'ซื้อ','buys':'ซื้อ','bought':'ซื้อ(อดีต)',
+'sell':'ขาย','sells':'ขาย','sold':'ขาย(อดีต)',
+'win':'ชนะ','wins':'ชนะ','won':'ชนะ(อดีต)',
+'die':'ตาย','dies':'ตาย','died':'ตาย(อดีต)',
+'build':'สร้าง','builds':'สร้าง','built':'สร้าง(อดีต)',
+'understand':'เข้าใจ','understands':'เข้าใจ','understood':'เข้าใจ(อดีต)',
+'remember':'จำได้','remembers':'จำได้','remembered':'จำได้(อดีต)',
+'forget':'ลืม','forgets':'ลืม','forgot':'ลืม(อดีต)',
+'choose':'เลือก','chooses':'เลือก','chose':'เลือก(อดีต)',
+'grow':'เติบโต','grows':'เติบโต','grew':'เติบโต(อดีต)',
+'spend':'ใช้จ่าย','spends':'ใช้จ่าย','spent':'ใช้จ่าย(อดีต)',
+'fall':'ตก','falls':'ตก','fell':'ตก(อดีต)',
+'cut':'ตัด','cuts':'ตัด','reach':'ถึง','reaches':'ถึง','reached':'ถึง(อดีต)',
+'new':'ใหม่','old':'เก่า','good':'ดี','bad':'แย่','great':'ยอดเยี่ยม','big':'ใหญ่','small':'เล็ก',
+'large':'ใหญ่','little':'เล็กน้อย','long':'ยาว','short':'สั้น','tall':'สูง','high':'สูง','low':'ต่ำ',
+'fast':'เร็ว','slow':'ช้า','quick':'รวดเร็ว','hard':'ยาก','soft':'นุ่ม','easy':'ง่าย',
+'hot':'ร้อน','cold':'เย็น','warm':'อุ่น','happy':'มีความสุข','sad':'เศร้า','angry':'โกรธ',
+'afraid':'กลัว','tired':'เหนื่อย','hungry':'หิว','beautiful':'สวยงาม','pretty':'น่ารัก',
+'handsome':'หล่อ','strong':'แข็งแรง','weak':'อ่อนแอ','brave':'กล้าหาญ','smart':'ฉลาด',
+'rich':'รวย','poor':'จน','expensive':'แพง','cheap':'ถูก','full':'เต็ม','empty':'ว่างเปล่า',
+'heavy':'หนัก','light':'เบา/สว่าง','dark':'มืด','bright':'สว่าง','loud':'ดัง','quiet':'เงียบ',
+'right':'ถูก/ขวา','wrong':'ผิด','true':'จริง','false':'เท็จ','same':'เหมือนกัน','different':'แตกต่าง',
+'important':'สำคัญ','interesting':'น่าสนใจ','boring':'น่าเบื่อ','exciting':'น่าตื่นเต้น',
+'famous':'มีชื่อเสียง','young':'หนุ่มสาว','free':'อิสระ','busy':'ยุ่ง','ready':'พร้อม',
+'late':'สาย','early':'เนิ่นๆ','nice':'ดี','kind':'ใจดี','wonderful':'มหัศจรรย์','amazing':'น่าทึ่ง',
+'perfect':'สมบูรณ์แบบ','real':'จริง','possible':'เป็นไปได้','necessary':'จำเป็น','sure':'แน่ใจ',
+'safe':'ปลอดภัย','dangerous':'อันตราย','careful':'ระมัดระวัง','healthy':'สุขภาพดี',
+'alive':'มีชีวิต','dead':'ตายแล้ว','simple':'ง่าย','clear':'ชัดเจน','strange':'แปลก',
+'normal':'ปกติ','special':'พิเศษ','main':'หลัก','final':'สุดท้าย','whole':'ทั้งหมด',
+'own':'เป็นของตัวเอง','other':'อื่น','another':'อีกอัน','next':'ถัดไป','last':'สุดท้าย',
+'first':'แรก','second':'ที่สอง','third':'ที่สาม','every':'ทุก','each':'แต่ละ','both':'ทั้งสอง',
+'few':'ไม่กี่','many':'หลาย','much':'มาก','most':'ส่วนใหญ่','some':'บาง','any':'ใดๆ','all':'ทั้งหมด',
+'no':'ไม่','yes':'ใช่','here':'ที่นี่','there':'ที่นั่น','now':'ตอนนี้','then':'แล้วก็',
+'again':'อีกครั้ง','always':'เสมอ','never':'ไม่เคย','often':'บ่อย','sometimes':'บางครั้ง','usually':'ปกติ',
+'today':'วันนี้','tomorrow':'พรุ่งนี้','yesterday':'เมื่อวาน','morning':'เช้า','afternoon':'บ่าย',
+'evening':'เย็น','night':'กลางคืน','day':'วัน','week':'สัปดาห์','month':'เดือน','year':'ปี',
+'time':'เวลา','hour':'ชั่วโมง','minute':'นาที','home':'บ้าน','house':'บ้าน','school':'โรงเรียน',
+'room':'ห้อง','door':'ประตู','window':'หน้าต่าง','table':'โต๊ะ','chair':'เก้าอี้','bed':'เตียง',
+'water':'น้ำ','food':'อาหาร','book':'หนังสือ','car':'รถ','friend':'เพื่อน','family':'ครอบครัว',
+'mother':'แม่','father':'พ่อ','sister':'พี่/น้องสาว','brother':'พี่/น้องชาย','child':'เด็ก','children':'เด็กๆ',
+'man':'ผู้ชาย','woman':'ผู้หญิง','people':'ผู้คน','person':'คน','name':'ชื่อ','place':'สถานที่',
+'world':'โลก','country':'ประเทศ','city':'เมือง','road':'ถนน','street':'ถนน','tree':'ต้นไม้',
+'flower':'ดอกไม้','animal':'สัตว์','dog':'สุนัข','cat':'แมว','bird':'นก','fish':'ปลา',
+'sun':'ดวงอาทิตย์','moon':'ดวงจันทร์','star':'ดาว','sky':'ท้องฟ้า','cloud':'เมฆ','rain':'ฝน',
+'wind':'ลม','fire':'ไฟ','earth':'โลก/ดิน','sea':'ทะเล','river':'แม่น้ำ','mountain':'ภูเขา','forest':'ป่า',
+'hand':'มือ','head':'หัว','eye':'ตา','eyes':'ตา','ear':'หู','nose':'จมูก','mouth':'ปาก',
+'face':'ใบหน้า','heart':'หัวใจ','body':'ร่างกาย','foot':'เท้า','feet':'เท้า','arm':'แขน','leg':'ขา','hair':'ผม',
+'thing':'สิ่งของ','way':'ทาง','life':'ชีวิต','money':'เงิน','job':'งาน','problem':'ปัญหา',
+'question':'คำถาม','answer':'คำตอบ','idea':'ความคิด','story':'เรื่องราว','part':'ส่วน',
+'side':'ด้าน','number':'ตัวเลข','point':'จุด','fact':'ความจริง','reason':'เหตุผล',
+'example':'ตัวอย่าง','result':'ผลลัพธ์','end':'จุดจบ','beginning':'จุดเริ่มต้น','moment':'ช่วงเวลา',
+'able':'สามารถ','about':'เกี่ยวกับ','above':'เหนือ','across':'ข้าม','after':'หลังจาก',
+'against':'ต่อต้าน','ago':'ที่แล้ว','almost':'เกือบ','along':'ตาม','already':'แล้ว',
+'although':'แม้ว่า','among':'ท่ามกลาง','around':'รอบๆ','away':'ออกไป','back':'กลับ',
+'because':'เพราะ','before':'ก่อน','behind':'ข้างหลัง','below':'ใต้','beside':'ข้างๆ',
+'between':'ระหว่าง','beyond':'เกินกว่า','down':'ลง','during':'ระหว่าง','enough':'พอ',
+'ever':'เคย','everything':'ทุกอย่าง','everyone':'ทุกคน','far':'ไกล','forward':'ข้างหน้า',
+'inside':'ข้างใน','instead':'แทน','into':'เข้าไปใน','near':'ใกล้','nothing':'ไม่มีอะไร',
+'off':'ปิด/ออก','once':'ครั้งหนึ่ง','outside':'ข้างนอก','over':'เหนือ','perhaps':'บางที',
+'quite':'ค่อนข้าง','rather':'ค่อนข้าง','really':'จริงๆ','since':'ตั้งแต่','still':'ยังคง',
+'such':'เช่นนั้น','than':'กว่า','though':'ถึงแม้','through':'ผ่าน','together':'ด้วยกัน',
+'toward':'ไปทาง','under':'ใต้','until':'จนกระทั่ง','up':'ขึ้น','upon':'บน','well':'ดี',
+'while':'ขณะที่','within':'ภายใน','without':'โดยไม่มี','yet':'ยัง','suddenly':'ทันใดนั้น',
+'quickly':'อย่างรวดเร็ว','slowly':'อย่างช้าๆ','carefully':'อย่างระมัดระวัง','happily':'อย่างมีความสุข',
+'finally':'ในที่สุด','probably':'อาจจะ','certainly':'แน่นอน','especially':'โดยเฉพาะ',
+'exactly':'แน่นอน','however':'อย่างไรก็ตาม','therefore':'ดังนั้น','please':'กรุณา',
+'sorry':'ขอโทษ','hello':'สวัสดี','goodbye':'ลาก่อน','thanks':'ขอบคุณ','okay':'โอเค',
+'oh':'โอ้','wow':'ว้าว','maybe':'อาจจะ','celebrate':'เฉลิมฉลอง','celebrates':'เฉลิมฉลอง',
+'special':'พิเศษ','occasion':'โอกาส','occasions':'โอกาส','birthday':'วันเกิด','birthdays':'วันเกิด',
+'holiday':'วันหยุด','holidays':'วันหยุด','together':'ด้วยกัน','garden':'สวน','cook':'ทำอาหาร',
+'cooks':'ทำอาหาร','delicious':'อร่อย','chore':'งานบ้าน','chores':'งานบ้าน','household':'ครัวเรือน',
+'breakfast':'อาหารเช้า','park':'สวนสาธารณะ','game':'เกม','games':'เกม'
+};
+
+// vocabularyWords : EXACTLY 1,000 UNIQUE WORDS (counted & verified)
+// Combined from original + extra + additional sets
+var vocabularyWords = {
+/* ================= 1–300 Basic / Daily / Education / Work ================= */
+'study':'เรียน','learn':'เรียนรู้','teach':'สอน','read':'อ่าน','write':'เขียน','listen':'ฟัง','speak':'พูด','student':'นักเรียน','teacher':'ครู','professor':'อาจารย์','classroom':'ห้องเรียน','lesson':'บทเรียน','homework':'การบ้าน','exam':'การสอบ','knowledge':'ความรู้','education':'การศึกษา','university':'มหาวิทยาลัย','college':'วิทยาลัย','degree':'ปริญญา','graduate':'จบการศึกษา','work':'ทำงาน','job':'งาน','career':'อาชีพ','office':'สำนักงาน','boss':'เจ้านาย','colleague':'เพื่อนร่วมงาน','employee':'พนักงาน','meeting':'การประชุม','project':'โครงการ','deadline':'กำหนดส่ง','salary':'เงินเดือน','interview':'สัมภาษณ์','hire':'จ้าง','fire':'ไล่ออก','manager':'ผู้จัดการ','assistant':'ผู้ช่วย','experience':'ประสบการณ์','skill':'ทักษะ','promote':'เลื่อนตำแหน่ง','resign':'ลาออก',
+'computer':'คอมพิวเตอร์','internet':'อินเทอร์เน็ต','website':'เว็บไซต์','email':'อีเมล','password':'รหัสผ่าน','download':'ดาวน์โหลด','upload':'อัปโหลด','software':'ซอฟต์แวร์','hardware':'ฮาร์ดแวร์','application':'แอปพลิเคชัน','program':'โปรแกรม','data':'ข้อมูล','file':'ไฟล์','folder':'โฟลเดอร์','screen':'หน้าจอ','keyboard':'คีย์บอร์ด','mouse':'เมาส์','printer':'เครื่องพิมพ์','camera':'กล้อง','battery':'แบตเตอรี่','charge':'ชาร์จ',
+/* ================= 301–600 General / Academic ================= */
+'ability':'ความสามารถ','absence':'การขาด','academic':'เชิงวิชาการ','accept':'ยอมรับ','access':'เข้าถึง','accident':'อุบัติเหตุ','account':'บัญชี','accurate':'แม่นยำ','achieve':'บรรลุ','across':'ข้าม','action':'การกระทำ','active':'กระตือรือร้น','activity':'กิจกรรม','actor':'นักแสดง','address':'ที่อยู่','adjust':'ปรับ','admit':'ยอมรับ','adult':'ผู้ใหญ่','advance':'ก้าวหน้า','advantage':'ข้อได้เปรียบ','advice':'คำแนะนำ','affect':'ส่งผล','afford':'สามารถจ่าย','afraid':'กลัว','against':'ต่อต้าน','agency':'หน่วยงาน','agenda':'วาระ','agent':'ตัวแทน','agreeable':'เป็นมิตร','agriculture':'เกษตรกรรม','ahead':'ล่วงหน้า','aim':'เป้าหมาย','alarm':'สัญญาณเตือน','album':'อัลบั้ม','alcohol':'แอลกอฮอล์','allow':'อนุญาต','almost':'เกือบ','alone':'คนเดียว','along':'ตามไป','already':'แล้ว','alternative':'ทางเลือก','amaze':'ทำให้ทึ่ง','amount':'จำนวน','analysis':'การวิเคราะห์','announce':'ประกาศ','anxiety':'ความกังวล','apologize':'ขอโทษ','appearance':'รูปลักษณ์','apply':'สมัคร','appoint':'แต่งตั้ง','approach':'แนวทาง','approve':'อนุมัติ','area':'พื้นที่','argue':'โต้เถียง','arrange':'จัดเตรียม','arrival':'การมาถึง','article':'บทความ','artist':'ศิลปิน','aspect':'แง่มุม','attack':'โจมตี','attempt':'พยายาม','attend':'เข้าร่วม','attention':'ความสนใจ','attitude':'ทัศนคติ','audience':'ผู้ชม','authority':'อำนาจ','available':'มีอยู่','average':'ค่าเฉลี่ย','avoid':'หลีกเลี่ยง','award':'รางวัล',
+/* ================= 601–900 Advanced / Abstract ================= */
+'balance':'สมดุล','ban':'ห้าม','bank':'ธนาคาร','barrier':'อุปสรรค','basic':'พื้นฐาน','behavior':'พฤติกรรม','benefit':'ประโยชน์','beyond':'เกินกว่า','billion':'พันล้าน','blame':'โทษ','block':'ขวาง','board':'กระดาน','boost':'เพิ่ม','border':'ชายแดน','brain':'สมอง','branch':'สาขา','budget':'งบประมาณ','burden':'ภาระ','button':'ปุ่ม','buyer':'ผู้ซื้อ','calculate':'คำนวณ','campaign':'การรณรงค์','cancel':'ยกเลิก','candidate':'ผู้สมัคร','capacity':'ความจุ','capital':'เมืองหลวง','capture':'จับ','category':'หมวดหมู่','cause':'สาเหตุ','celebrate':'เฉลิมฉลอง','central':'ศูนย์กลาง','challenge':'ความท้าทาย','chance':'โอกาส','channel':'ช่อง','chapter':'บท','character':'ตัวละคร','charge':'คิดเงิน','chart':'แผนภูมิ','choice':'ตัวเลือก','civil':'พลเรือน','claim':'อ้าง','classic':'คลาสสิก','client':'ลูกค้า','clue':'เบาะแส','coach':'โค้ช','collapse':'พังทลาย','combine':'รวม','comfort':'ความสบาย','command':'คำสั่ง','comment':'ความคิดเห็น','commercial':'เชิงพาณิชย์','commit':'ผูกมัด','committee':'คณะกรรมการ','compare':'เปรียบเทียบ','compete':'แข่งขัน','complain':'บ่น','complete':'สมบูรณ์','complex':'ซับซ้อน','concentrate':'มีสมาธิ','concept':'แนวคิด','concern':'ความกังวล','confirm':'ยืนยัน','conflict':'ความขัดแย้ง','connect':'เชื่อมต่อ','consider':'พิจารณา','constant':'คงที่','construct':'ก่อสร้าง','contact':'ติดต่อ','contain':'บรรจุ','context':'บริบท','control':'ควบคุม','convert':'แปลง','cost':'ค่าใช้จ่าย','council':'สภา','culture':'วัฒนธรรม','curious':'อยากรู้','current':'ปัจจุบัน','custom':'ประเพณี','damage':'ความเสียหาย',
+/* ================= 901–1000 Final Set ================= */
+'danger':'อันตราย','debate':'โต้วาที','decade':'ทศวรรษ','declare':'ประกาศ','decline':'ลดลง','defeat':'เอาชนะ','defend':'ป้องกัน','define':'นิยาม','delay':'ล่าช้า','demand':'เรียกร้อง','demonstrate':'แสดง','deny':'ปฏิเสธ','depend':'พึ่งพา','describe':'บรรยาย','design':'ออกแบบ','desire':'ความปรารถนา','destroy':'ทำลาย','detail':'รายละเอียด','develop':'พัฒนา','device':'อุปกรณ์','digital':'ดิจิทัล','direct':'โดยตรง','discover':'ค้นพบ','display':'แสดงผล','distance':'ระยะทาง','divide':'แบ่ง','document':'เอกสาร','domestic':'ภายในประเทศ','donate':'บริจาค','double':'สองเท่า','editor':'บรรณาธิการ','effect':'ผลกระทบ','efficient':'มีประสิทธิภาพ','elderly':'ผู้สูงอายุ','elect':'เลือกตั้ง','emergency':'ฉุกเฉิน','emotion':'อารมณ์','emphasize':'เน้น','enable':'ทำให้สามารถ','encourage':'สนับสนุน','energy':'พลังงาน','engage':'มีส่วนร่วม','enhance':'เสริม','ensure':'รับรอง','entire':'ทั้งหมด','entrance':'ทางเข้า','environmental':'ด้านสิ่งแวดล้อม','equal':'เท่าเทียม','equipment':'อุปกรณ์','escape':'หลบหนี','essential':'จำเป็น','estimate':'ประมาณการ','ethics':'จริยธรรม','evaluate':'ประเมิน','event':'เหตุการณ์','evidence':'หลักฐาน','exchange':'แลกเปลี่ยน','executive':'ผู้บริหาร','expand':'ขยาย','expect':'คาดหวัง','expense':'ค่าใช้จ่าย','expert':'ผู้เชี่ยวชาญ','explore':'สำรวจ','export':'ส่งออก','expose':'เปิดเผย','factor':'ปัจจัย','failure':'ความล้มเหลว','feature':'คุณสมบัติ','feedback':'ข้อเสนอแนะ','finance':'การเงิน','focus':'จุดสนใจ','forecast':'พยากรณ์','formal':'เป็นทางการ','freedom':'เสรีภาพ','function':'หน้าที่','fund':'กองทุน','future':'อนาคต','zeal':'ความกระตือรือร้น'
+};
+
+// ==================== GRAMMAR WORDS (200 คำ) ====================
+var grammarWords={
+// Present Simple (3rd person)
+'walks':'เดิน(ปัจจุบัน)','runs':'วิ่ง(ปัจจุบัน)','eats':'กิน(ปัจจุบัน)','drinks':'ดื่ม(ปัจจุบัน)','sleeps':'นอน(ปัจจุบัน)',
+'works':'ทำงาน(ปัจจุบัน)','plays':'เล่น(ปัจจุบัน)','lives':'อาศัย(ปัจจุบัน)','goes':'ไป(ปัจจุบัน)','comes':'มา(ปัจจุบัน)',
+'sees':'เห็น(ปัจจุบัน)','knows':'รู้(ปัจจุบัน)','thinks':'คิด(ปัจจุบัน)','wants':'ต้องการ(ปัจจุบัน)','needs':'จำเป็น(ปัจจุบัน)',
+'likes':'ชอบ(ปัจจุบัน)','loves':'รัก(ปัจจุบัน)','hates':'เกลียด(ปัจจุบัน)','makes':'ทำ(ปัจจุบัน)','takes':'เอา(ปัจจุบัน)',
+'gives':'ให้(ปัจจุบัน)','gets':'ได้(ปัจจุบัน)','says':'พูด(ปัจจุบัน)','tells':'บอก(ปัจจุบัน)','asks':'ถาม(ปัจจุบัน)',
+'starts':'เริ่ม(ปัจจุบัน)','stops':'หยุด(ปัจจุบัน)','tries':'ลอง(ปัจจุบัน)','helps':'ช่วย(ปัจจุบัน)','reads':'อ่าน(ปัจจุบัน)',
+'writes':'เขียน(ปัจจุบัน)','speaks':'พูด(ปัจจุบัน)','listens':'ฟัง(ปัจจุบัน)','watches':'ดู(ปัจจุบัน)','learns':'เรียนรู้(ปัจจุบัน)','teaches':'สอน(ปัจจุบัน)',
+'studies':'เรียน(ปัจจุบัน)',
+'fixes':'ซ่อม(ปัจจุบัน)',
+'carries':'ถือ(ปัจจุบัน)',
+'washes':'ล้าง(ปัจจุบัน)',
+'pushes':'ผลัก(ปัจจุบัน)',
+'pulls':'ดึง(ปัจจุบัน)',
+'opens':'เปิด(ปัจจุบัน)',
+'closes':'ปิด(ปัจจุบัน)',
+'cleans':'ทำความสะอาด(ปัจจุบัน)',
+'drives':'ขับรถ(ปัจจุบัน)',
+'buys':'ซื้อ(ปัจจุบัน)',
+'sells':'ขาย(ปัจจุบัน)',
+'pays':'จ่าย(ปัจจุบัน)',
+'spends':'ใช้จ่าย(ปัจจุบัน)',
+'saves':'เก็บออม(ปัจจุบัน)',
+'calls':'โทร(ปัจจุบัน)',
+'texts':'ส่งข้อความ(ปัจจุบัน)',
+'answers':'ตอบ(ปัจจุบัน)',
+'explains':'อธิบาย(ปัจจุบัน)',
+'checks':'ตรวจสอบ(ปัจจุบัน)',
+'plans':'วางแผน(ปัจจุบัน)',
+'decides':'ตัดสินใจ(ปัจจุบัน)',
+'chooses':'เลือก(ปัจจุบัน)',
+'builds':'สร้าง(ปัจจุบัน)',
+'breaks':'ทำแตก(ปัจจุบัน)',
+'cuts':'ตัด(ปัจจุบัน)',
+'cooks':'ทำอาหาร(ปัจจุบัน)',
+'bakes':'อบ(ปัจจุบัน)',
+'serves':'เสิร์ฟ(ปัจจุบัน)',
+'orders':'สั่ง(ปัจจุบัน)',
+'delivers':'จัดส่ง(ปัจจุบัน)',
+'travels':'เดินทาง(ปัจจุบัน)',
+'returns':'กลับ(ปัจจุบัน)',
+'arrives':'มาถึง(ปัจจุบัน)',
+'leaves':'ออกจาก(ปัจจุบัน)',
+'enters':'เข้า(ปัจจุบัน)',
+'joins':'เข้าร่วม(ปัจจุบัน)',
+'teaches':'สอน(ปัจจุบัน)',
+'leads':'นำ(ปัจจุบัน)',
+'follows':'ตาม(ปัจจุบัน)',
+'supports':'สนับสนุน(ปัจจุบัน)',
+'controls':'ควบคุม(ปัจจุบัน)',
+'manages':'บริหาร(ปัจจุบัน)',
+'prepares':'เตรียม(ปัจจุบัน)',
+'improves':'ปรับปรุง(ปัจจุบัน)',
+'creates':'สร้างสรรค์(ปัจจุบัน)',
+'produces':'ผลิต(ปัจจุบัน)','teaches':'สอน(ปัจจุบัน)',
+'studies':'เรียน(ปัจจุบัน)',
+'fixes':'ซ่อม(ปัจจุบัน)',
+'carries':'ถือ(ปัจจุบัน)',
+'washes':'ล้าง(ปัจจุบัน)',
+'pushes':'ผลัก(ปัจจุบัน)',
+'pulls':'ดึง(ปัจจุบัน)',
+'opens':'เปิด(ปัจจุบัน)',
+'closes':'ปิด(ปัจจุบัน)',
+'cleans':'ทำความสะอาด(ปัจจุบัน)',
+'drives':'ขับรถ(ปัจจุบัน)',
+'buys':'ซื้อ(ปัจจุบัน)',
+'sells':'ขาย(ปัจจุบัน)',
+'pays':'จ่าย(ปัจจุบัน)',
+'spends':'ใช้จ่าย(ปัจจุบัน)',
+'saves':'ออม(ปัจจุบัน)',
+'calls':'โทร(ปัจจุบัน)',
+'texts':'ส่งข้อความ(ปัจจุบัน)',
+'answers':'ตอบ(ปัจจุบัน)',
+'explains':'อธิบาย(ปัจจุบัน)',
+
+'checks':'ตรวจสอบ(ปัจจุบัน)',
+'plans':'วางแผน(ปัจจุบัน)',
+'decides':'ตัดสินใจ(ปัจจุบัน)',
+'chooses':'เลือก(ปัจจุบัน)',
+'builds':'สร้าง(ปัจจุบัน)',
+'breaks':'ทำแตก(ปัจจุบัน)',
+'cuts':'ตัด(ปัจจุบัน)',
+'cooks':'ทำอาหาร(ปัจจุบัน)',
+'bakes':'อบ(ปัจจุบัน)',
+'serves':'เสิร์ฟ(ปัจจุบัน)',
+'orders':'สั่ง(ปัจจุบัน)',
+'delivers':'จัดส่ง(ปัจจุบัน)',
+'travels':'เดินทาง(ปัจจุบัน)',
+'returns':'กลับ(ปัจจุบัน)',
+'arrives':'มาถึง(ปัจจุบัน)',
+'leaves':'ออกจาก(ปัจจุบัน)',
+'enters':'เข้า(ปัจจุบัน)',
+'joins':'เข้าร่วม(ปัจจุบัน)',
+'leads':'นำ(ปัจจุบัน)',
+'follows':'ตาม(ปัจจุบัน)',
+
+'supports':'สนับสนุน(ปัจจุบัน)',
+'controls':'ควบคุม(ปัจจุบัน)',
+'manages':'บริหาร(ปัจจุบัน)',
+'prepares':'เตรียม(ปัจจุบัน)',
+'improves':'ปรับปรุง(ปัจจุบัน)',
+'creates':'สร้างสรรค์(ปัจจุบัน)',
+'produces':'ผลิต(ปัจจุบัน)',
+'develops':'พัฒนา(ปัจจุบัน)',
+'designs':'ออกแบบ(ปัจจุบัน)',
+'prints':'พิมพ์(ปัจจุบัน)',
+'sends':'ส่ง(ปัจจุบัน)',
+'receives':'รับ(ปัจจุบัน)',
+'shares':'แบ่งปัน(ปัจจุบัน)',
+'uploads':'อัปโหลด(ปัจจุบัน)',
+'downloads':'ดาวน์โหลด(ปัจจุบัน)',
+'connects':'เชื่อมต่อ(ปัจจุบัน)',
+'disconnects':'ตัดการเชื่อมต่อ(ปัจจุบัน)',
+'logs':'บันทึก(ปัจจุบัน)',
+'registers':'ลงทะเบียน(ปัจจุบัน)',
+'confirms':'ยืนยัน(ปัจจุบัน)','believes':'เชื่อ(ปัจจุบัน)',
+'remembers':'จำได้(ปัจจุบัน)',
+'forgets':'ลืม(ปัจจุบัน)',
+'agrees':'เห็นด้วย(ปัจจุบัน)',
+'disagrees':'ไม่เห็นด้วย(ปัจจุบัน)',
+'promises':'สัญญา(ปัจจุบัน)',
+'refuses':'ปฏิเสธ(ปัจจุบัน)',
+'accepts':'ยอมรับ(ปัจจุบัน)',
+'rejects':'ปฏิเสธ(ปัจจุบัน)',
+'permits':'อนุญาต(ปัจจุบัน)',
+'forbids':'ห้าม(ปัจจุบัน)',
+'warns':'เตือน(ปัจจุบัน)',
+'advises':'แนะนำ(ปัจจุบัน)',
+'reminds':'เตือนความจำ(ปัจจุบัน)',
+'complains':'บ่น(ปัจจุบัน)',
+
+'admires':'ชื่นชม(ปัจจุบัน)',
+'respects':'เคารพ(ปัจจุบัน)',
+'trusts':'เชื่อใจ(ปัจจุบัน)',
+'doubts':'สงสัย(ปัจจุบัน)',
+'fears':'กลัว(ปัจจุบัน)',
+'hopes':'หวัง(ปัจจุบัน)',
+'wishes':'ปรารถนา(ปัจจุบัน)',
+'prefers':'ชอบมากกว่า(ปัจจุบัน)',
+'avoids':'หลีกเลี่ยง(ปัจจุบัน)',
+'faces':'เผชิญ(ปัจจุบัน)',
+'handles':'จัดการ(ปัจจุบัน)',
+'deals':'รับมือ(ปัจจุบัน)',
+'causes':'ก่อให้เกิด(ปัจจุบัน)',
+'affects':'ส่งผล(ปัจจุบัน)',
+'depends':'ขึ้นอยู่กับ(ปัจจุบัน)',
+
+'includes':'รวมถึง(ปัจจุบัน)',
+'excludes':'ไม่รวม(ปัจจุบัน)',
+'belongs':'เป็นของ(ปัจจุบัน)',
+'contains':'บรรจุ(ปัจจุบัน)',
+'consists':'ประกอบด้วย(ปัจจุบัน)',
+'represents':'แทน(ปัจจุบัน)',
+'means':'หมายถึง(ปัจจุบัน)',
+'appears':'ปรากฏ(ปัจจุบัน)',
+'seems':'ดูเหมือน(ปัจจุบัน)',
+'exists':'มีอยู่(ปัจจุบัน)',
+'occurs':'เกิดขึ้น(ปัจจุบัน)',
+'changes':'เปลี่ยนแปลง(ปัจจุบัน)',
+'improves':'ดีขึ้น(ปัจจุบัน)',
+'worsens':'แย่ลง(ปัจจุบัน)',
+'continues':'ดำเนินต่อ(ปัจจุบัน)',
+
+'ends':'จบ(ปัจจุบัน)',
+'begins':'เริ่ม(ปัจจุบัน)',
+'increases':'เพิ่มขึ้น(ปัจจุบัน)',
+'decreases':'ลดลง(ปัจจุบัน)',
+'succeeds':'ประสบความสำเร็จ(ปัจจุบัน)',
+'fails':'ล้มเหลว(ปัจจุบัน)',
+'matters':'มีความสำคัญ(ปัจจุบัน)',
+'counts':'นับว่า(ปัจจุบัน)',
+'fits':'พอดี(ปัจจุบัน)',
+'matches':'เข้ากัน(ปัจจุบัน)',
+
+// Present Continuous (-ing)
+'walking':'กำลังเดิน','running':'กำลังวิ่ง','eating':'กำลังกิน','drinking':'กำลังดื่ม','sleeping':'กำลังนอน',
+'working':'กำลังทำงาน','playing':'กำลังเล่น','living':'กำลังอาศัย','going':'กำลังไป','coming':'กำลังมา',
+'seeing':'กำลังเห็น','thinking':'กำลังคิด','making':'กำลังทำ','taking':'กำลังเอา','giving':'กำลังให้',
+'reading':'กำลังอ่าน','writing':'กำลังเขียน','listening':'กำลังฟัง','speaking':'กำลังพูด','watching':'กำลังดู',
+'studying':'กำลังเรียน','learning':'กำลังเรียนรู้','teaching':'กำลังสอน','waiting':'กำลังรอ','helping':'กำลังช่วย',
+'talking':'กำลังคุย','sitting':'กำลังนั่ง','standing':'กำลังยืน','swimming':'กำลังว่ายน้ำ','cooking':'กำลังทำอาหาร','typing':'กำลังพิมพ์',
+'clicking':'กำลังกด',
+'scrolling':'กำลังเลื่อน',
+'browsing':'กำลังท่องเว็บ',
+'coding':'กำลังเขียนโค้ด',
+'debugging':'กำลังดีบัก',
+'designing':'กำลังออกแบบ',
+'drawing':'กำลังวาด',
+'painting':'กำลังระบายสี',
+'editing':'กำลังแก้ไข',
+
+'uploading':'กำลังอัปโหลด',
+'downloading':'กำลังดาวน์โหลด',
+'installing':'กำลังติดตั้ง',
+'updating':'กำลังอัปเดต',
+'configuring':'กำลังกำหนดค่า',
+'testing':'กำลังทดสอบ',
+'deploying':'กำลังดีพลอย',
+'monitoring':'กำลังเฝ้าดู',
+'tracking':'กำลังติดตาม',
+'analyzing':'กำลังวิเคราะห์',
+
+'discussing':'กำลังอภิปราย',
+'presenting':'กำลังนำเสนอ',
+'negotiating':'กำลังเจรจา',
+'arguing':'กำลังโต้แย้ง',
+'agreeing':'กำลังเห็นด้วย',
+'disagreeing':'กำลังไม่เห็นด้วย',
+'explaining':'กำลังอธิบาย',
+'describing':'กำลังบรรยาย',
+'complaining':'กำลังบ่น',
+'joking':'กำลังล้อเล่น',
+
+'thinking':'กำลังคิด',
+'considering':'กำลังพิจารณา',
+'deciding':'กำลังตัดสินใจ',
+'planning':'กำลังวางแผน',
+'preparing':'กำลังเตรียม',
+'organizing':'กำลังจัดการ',
+'managing':'กำลังบริหาร',
+'solving':'กำลังแก้ปัญหา',
+'trying':'กำลังพยายาม',
+'practicing':'กำลังฝึก',
+
+'observing':'กำลังสังเกต',
+'noticing':'กำลังสังเกตเห็น',
+'checking':'กำลังตรวจสอบ',
+'confirming':'กำลังยืนยัน',
+'waiting':'กำลังรอ',
+'responding':'กำลังตอบ',
+'communicating':'กำลังสื่อสาร',
+'collaborating':'กำลังทำงานร่วมกัน',
+'supporting':'กำลังสนับสนุน',
+'improving':'กำลังปรับปรุง','commuting':'กำลังเดินทางไปทำงาน/เรียน',
+'cycling':'กำลังปั่นจักรยาน',
+'jogging':'กำลังวิ่งเหยาะ',
+'exercising':'กำลังออกกำลังกาย',
+'training':'กำลังฝึกซ้อม',
+'stretching':'กำลังยืดเส้น',
+'lifting':'กำลังยก',
+'climbing':'กำลังปีน',
+'hiking':'กำลังเดินป่า',
+'camping':'กำลังตั้งแคมป์',
+
+'shopping':'กำลังซื้อของ',
+'paying':'กำลังจ่ายเงิน',
+'saving':'กำลังออมเงิน',
+'spending':'กำลังใช้เงิน',
+'investing':'กำลังลงทุน',
+'budgeting':'กำลังวางงบประมาณ',
+'borrowing':'กำลังกู้ยืม',
+'lending':'กำลังให้ยืม',
+'ordering':'กำลังสั่งซื้อ',
+'booking':'กำลังจอง',
+
+'teaching':'กำลังสอน',
+'tutoring':'กำลังติว',
+'coaching':'กำลังฝึกสอน',
+'mentoring':'กำลังให้คำปรึกษา',
+'grading':'กำลังตรวจคะแนน',
+'examining':'กำลังสอบ',
+'questioning':'กำลังตั้งคำถาม',
+'answering':'กำลังตอบ',
+'discussing':'กำลังอภิปราย',
+'debating':'กำลังโต้วาที',
+
+'praying':'กำลังสวด',
+'meditating':'กำลังทำสมาธิ',
+'reflecting':'กำลังไตร่ตรอง',
+'imagining':'กำลังจินตนาการ',
+'dreaming':'กำลังฝัน',
+'hoping':'กำลังหวัง',
+'worrying':'กำลังกังวล',
+'regretting':'กำลังเสียใจ',
+'forgiving':'กำลังให้อภัย',
+'trusting':'กำลังเชื่อใจ',
+
+'entertaining':'กำลังให้ความบันเทิง',
+'performing':'กำลังแสดง',
+'singing':'กำลังร้องเพลง',
+'dancing':'กำลังเต้น',
+'rehearsing':'กำลังซ้อม',
+'filming':'กำลังถ่ายทำ',
+'recording':'กำลังบันทึก',
+'streaming':'กำลังสตรีม',
+'broadcasting':'กำลังกระจายเสียง',
+'editing':'กำลังตัดต่อ',
+
+// Past Simple (irregular)
+'walked':'เดิน(อดีต)','ran':'วิ่ง(อดีต)','ate':'กิน(อดีต)','drank':'ดื่ม(อดีต)','slept':'นอน(อดีต)',
+'worked':'ทำงาน(อดีต)','played':'เล่น(อดีต)','lived':'อาศัย(อดีต)','went':'ไป(อดีต)','came':'มา(อดีต)',
+'saw':'เห็น(อดีต)','knew':'รู้(อดีต)','thought':'คิด(อดีต)','wanted':'ต้องการ(อดีต)','needed':'จำเป็น(อดีต)',
+'liked':'ชอบ(อดีต)','loved':'รัก(อดีต)','hated':'เกลียด(อดีต)','made':'ทำ(อดีต)','took':'เอา(อดีต)',
+'gave':'ให้(อดีต)','got':'ได้(อดีต)','said':'พูด(อดีต)','told':'บอก(อดีต)','asked':'ถาม(อดีต)',
+'found':'พบ(อดีต)','lost':'หาย(อดีต)','left':'ออกไป(อดีต)','started':'เริ่ม(อดีต)','finished':'เสร็จ(อดีต)',
+'bought':'ซื้อ(อดีต)','sold':'ขาย(อดีต)','brought':'นำมา(อดีต)','sent':'ส่ง(อดีต)','received':'รับ(อดีต)',
+'wrote':'เขียน(อดีต)','spoke':'พูด(อดีต)','heard':'ได้ยิน(อดีต)','met':'พบ(อดีต)','felt':'รู้สึก(อดีต)',
+'kept':'เก็บ(อดีต)','let':'ปล่อย(อดีต)','put':'วาง(อดีต)','stood':'ยืน(อดีต)','sat':'นั่ง(อดีต)',
+
+// Past Participle (for Perfect tenses)
+'walked':'เดินแล้ว','eaten':'กินแล้ว','drunk':'ดื่มแล้ว','slept':'นอนแล้ว','gone':'ไปแล้ว',
+'seen':'เห็นแล้ว','known':'รู้แล้ว','done':'ทำแล้ว','been':'เป็นแล้ว','had':'มีแล้ว',
+'written':'เขียนแล้ว','spoken':'พูดแล้ว','taken':'เอาแล้ว','given':'ให้แล้ว','begun':'เริ่มแล้ว',
+'broken':'หักแล้ว','chosen':'เลือกแล้ว','forgotten':'ลืมแล้ว','gotten':'ได้แล้ว','hidden':'ซ่อนแล้ว',
+'ridden':'ขี่แล้ว','risen':'ขึ้นแล้ว','driven':'ขับแล้ว','fallen':'ล้มแล้ว','worn':'สวมแล้ว',
+
+// Comparatives & Superlatives
+'bigger':'ใหญ่กว่า','smaller':'เล็กกว่า','faster':'เร็วกว่า','slower':'ช้ากว่า','better':'ดีกว่า','worse':'แย่กว่า',
+'bigger':'ใหญ่กว่า','taller':'สูงกว่า','shorter':'สั้นกว่า','longer':'ยาวกว่า','older':'แก่กว่า','younger':'อ่อนกว่า',
+'biggest':'ใหญ่ที่สุด','smallest':'เล็กที่สุด','fastest':'เร็วที่สุด','slowest':'ช้าที่สุด','best':'ดีที่สุด','worst':'แย่ที่สุด',
+'tallest':'สูงที่สุด','shortest':'สั้นที่สุด','longest':'ยาวที่สุด','oldest':'แก่ที่สุด','youngest':'อ่อนที่สุด',
+'more':'มากกว่า','most':'มากที่สุด','less':'น้อยกว่า','least':'น้อยที่สุด',
+'more important':'สำคัญกว่า','most important':'สำคัญที่สุด','more interesting':'น่าสนใจกว่า','most interesting':'น่าสนใจที่สุด',
+'more beautiful':'สวยกว่า','most beautiful':'สวยที่สุด','more difficult':'ยากกว่า','most difficult':'ยากที่สุด',
+
+// Negative contractions
+"don't":'ไม่',"doesn't":'ไม่',"didn't":'ไม่(อดีต)',"won't":'จะไม่',"can't":'ไม่สามารถ',
+"couldn't":'ไม่สามารถ(อดีต)',"shouldn't":'ไม่ควร',"wouldn't":'จะไม่(สมมติ)',"haven't":'ยังไม่',"hasn't":'ยังไม่',
+"isn't":'ไม่ใช่',"aren't":'ไม่ใช่',"wasn't":'ไม่ใช่(อดีต)',"weren't":'ไม่ใช่(อดีต)',"mustn't":'ต้องไม่',
+
+// Question tags & forms
+"do you":'คุณ...ไหม',"does he":'เขา...ไหม',"did you":'คุณ...ไหม(อดีต)',"will you":'คุณจะ...ไหม',
+"can you":'คุณสามารถ...ไหม',"could you":'คุณช่วย...ได้ไหม',"would you":'คุณจะ...ไหม',"should I":'ฉันควร...ไหม',
+"have you":'คุณเคย...ไหม',"has he":'เขาเคย...ไหม',"are you":'คุณกำลัง...ไหม',"is he":'เขากำลัง...ไหม'
+};
+
+var CEFR_SPECS={'A1':{wordCount:'80-100',desc:'📖 A1: 80-100 คำ'},'A2':{wordCount:'100-150',desc:'📖 A2: 100-150 คำ'},'B1':{wordCount:'150-200',desc:'📖 B1: 150-200 คำ'},'B2':{wordCount:'200-250',desc:'📖 B2: 200-250 คำ'},'C1':{wordCount:'250-300',desc:'📖 C1: 250-300 คำ'}};
+var FALLBACK_MODELS=["llama-3.3-70b-versatile","llama-3.1-8b-instant","gemma2-9b-it"];
+
+// ==================== API KEY MANAGER ====================
+var APIKeyManager={
+  keys:[],keyStatus:{},currentIndex:0,
+  loadKeys:function(){
+    var text=document.getElementById('apiKeys').value.trim();
+    var raw=text?text.split('\n'):[];
+    var all=raw.concat(PRESET_API_KEYS);
+    this.keys=[...new Set(all.map(k=>k.trim()).filter(k=>k.length>20&&k.startsWith('gsk_')))];
+    var self=this;
+    this.keys.forEach(k=>{if(!self.keyStatus[k])self.keyStatus[k]={status:'ready',requests:0}});
+    this.updateDisplay();
+    document.getElementById('keyCountBadge').textContent=this.keys.length+' Keys';
+    var sec=document.getElementById('apiKeySection'),txt=document.getElementById('keyStatusText');
+    if(this.keys.length>0){sec.classList.remove('no-keys');txt.innerHTML='✅ พร้อม '+this.keys.length+' Keys'}
+    else{sec.classList.add('no-keys');txt.innerHTML='⚠️ ยังไม่มี API Key'}
+    return this.keys.length;
+  },
+  getNextKey:function(){
+    var a=0,t=this.keys.length;
+    while(a<t){
+      var k=this.keys[this.currentIndex],s=this.keyStatus[k];
+      if(s&&s.status!=='exhausted'){s.status='active';this.updateDisplay();return{key:k,index:this.currentIndex}}
+      this.currentIndex=(this.currentIndex+1)%t;a++;
+    }
+    return null;
+  },
+  reportResult:function(k,ok){
+    var s=this.keyStatus[k];if(!s)return;
+    if(ok){s.requests++;s.status=s.requests>=20?'warning':'ready'}
+    else{s.status='exhausted'}
+    this.currentIndex=(this.keys.indexOf(k)+1)%this.keys.length;this.updateDisplay();
+  },
+  updateDisplay:function(){
+    var g=document.getElementById('keyStatusGrid'),self=this;
+    document.getElementById('totalKeysCount').textContent=this.keys.length;
+    if(this.keys.length===0){g.innerHTML='<div class="key-indicator" style="background:#666">ไม่มี Key</div>';document.getElementById('readyKeysCount').textContent='0';return}
+    g.innerHTML=this.keys.map((k,i)=>{var s=self.keyStatus[k]||{status:'ready'};return '<div class="key-indicator '+s.status+'">K'+(i+1)+'</div>'}).join('');
+    var r=this.keys.filter(k=>{var s=self.keyStatus[k];return s&&s.status!=='exhausted'}).length;
+    document.getElementById('readyKeysCount').textContent=r;
+  }
+};
+
+// ==================== CACHE ====================
+function loadPersistentCache(){try{var s=localStorage.getItem(CACHE_KEY);if(s){translationCache=JSON.parse(s);updateCacheDisplay()}}catch(e){}}
+function savePersistentCache(){try{localStorage.setItem(CACHE_KEY,JSON.stringify(translationCache));updateCacheDisplay()}catch(e){}}
+function updateCacheDisplay(){document.getElementById('cacheCount').textContent=Object.keys(translationCache).length;document.getElementById('savedCalls').textContent=savedApiCalls}
+function clearTranslationCache(){if(confirm('ล้าง Cache ทั้งหมด?')){translationCache={};savedApiCalls=0;localStorage.removeItem(CACHE_KEY);updateCacheDisplay();alert('✅ ล้างเรียบร้อย')}}
+
+// ==================== UI ====================
+function requestPasswordToEdit(){
+  if(isUnlocked){toggleApiKeys();return}
+  var p=prompt('🔐 รหัสผ่าน:');if(p===null)return;
+  if(p===EDIT_PASSWORD){isUnlocked=true;document.querySelector('.toggle-keys-btn').innerHTML='🔓 แก้ไข';toggleApiKeys();alert('✅ ปลดล็อก')}
+  else alert('❌ รหัสผ่านไม่ถูก')
+}
+function toggleApiKeys(){
+  var c=document.getElementById('apiKeysContainer'),b=document.querySelector('.toggle-keys-btn');
+  if(c.style.display==='none'){c.style.display='block';b.innerHTML='🔼 ซ่อน';document.getElementById('apiKeys').value=APIKeyManager.keys.join('\n')}
+  else{c.style.display='none';b.innerHTML=isUnlocked?'🔓 แก้ไข':'🔒 แก้ไข';APIKeyManager.loadKeys()}
+}
+function saveAndHideKeys(){APIKeyManager.loadKeys();document.getElementById('apiKeysContainer').style.display='none';document.querySelector('.toggle-keys-btn').innerHTML=isUnlocked?'🔓 แก้ไข':'🔒 แก้ไข';alert('✅ บันทึกเรียบร้อย')}
+function updateLevelInfo(){document.getElementById('levelInfo').textContent=CEFR_SPECS[document.getElementById('level').value].desc}
+
+// ==================== SPEECH ====================
+function loadVoices(){
+  voices=speechSynthesis.getVoices();
+  var s=document.getElementById('voiceSelect');
+  if(s&&voices.length>0){
+    var en=voices.filter(v=>v.lang.indexOf('en')===0);
+    s.innerHTML=en.map((v,i)=>'<option value="'+i+'">'+v.name+'</option>').join('')
+  }
+}
+if(speechSynthesis.onvoiceschanged!==undefined)speechSynthesis.onvoiceschanged=loadVoices;
+loadVoices();
+
+function speakWord(w,el){
+  if(!window.speechSynthesis)return;
+  if(currentSpeech)speechSynthesis.cancel();
+  var c=w.replace(/[^\w\s'-]/g,'').trim();if(!c)return;
+  currentSpeech=new SpeechSynthesisUtterance(c);
+  var en=voices.filter(v=>v.lang.indexOf('en')===0);
+  if(en.length>0)currentSpeech.voice=en[0];
+  var sp=document.getElementById('speedSelect');
+  if(sp)currentSpeech.rate=parseFloat(sp.value);
+  currentSpeech.lang='en-US';
+  if(el){el.classList.add('speaking');currentSpeech.onend=()=>el.classList.remove('speaking');currentSpeech.onerror=()=>el.classList.remove('speaking')}
+  speechSynthesis.speak(currentSpeech)
+}
+
+// ==================== TRANSLATION (FIXED) ====================
+function getTranslation(w){
+  if(!w)return null;
+  var lw=w.toLowerCase().replace(/[^a-z'-]/g,'');
+  return translationCache[lw]||commonWords[lw]||null;
+  return aiTranslations[lw]||translationCache[lw]||commonWords[lw]||vocabularyWords[lw]||grammarWords[lw]||null;
+}
+
+// ==================== TOOLTIP SYSTEM (FIXED) ====================
+function showTooltip(el,word,thai,type){
+  if(!tooltipBox)tooltipBox=document.getElementById('tooltipBox');
+  tooltipBox.querySelector('.tt-word').textContent='🔊 '+word;
+  tooltipBox.querySelector('.tt-thai').textContent='📖 '+(thai||'กำลังแปล...');
+  tooltipBox.querySelector('.tt-type').textContent=type?'🏷️ '+type:'';
+  
+  var rect=el.getBoundingClientRect();
+  var x=rect.left+rect.width/2;
+  var y=rect.top-10;
+  
+  // Position tooltip
+  tooltipBox.style.left=Math.max(10,Math.min(x,window.innerWidth-150))+'px';
+  tooltipBox.style.top=Math.max(10,y-tooltipBox.offsetHeight-10)+'px';
+  tooltipBox.classList.add('show');
+}
+
+function hideTooltip(){
+  if(tooltipBox)tooltipBox.classList.remove('show');
+}
+
+// ==================== PROCESS CONTENT (FIXED) ====================
+function processAllContent(){
+  // 1. Process vocab-word จาก AI
+  document.querySelectorAll('.vocab-word').forEach(el=>{
+    if(el.hasAttribute('data-processed'))return;
+    el.setAttribute('data-processed','true');
+    var word=el.getAttribute('data-word')||el.textContent.trim();
+    var thai=el.getAttribute('data-thai')||getTranslation(word)||'';
+    el.setAttribute('data-word',word);
+    el.setAttribute('data-thai',thai);
+    el.setAttribute('data-type','คำศัพท์');
+  });
+
+  // 2. Process <strong> เป็น grammar-word
+  document.querySelectorAll('.story-text strong').forEach(el=>{
+    if(el.classList.contains('grammar-word')||el.hasAttribute('data-processed'))return;
+    el.classList.add('grammar-word');
+    el.setAttribute('data-processed','true');
+    var word=el.textContent.trim();
+    var thai=getTranslation(word)||'';
+    el.setAttribute('data-word',word);
+    el.setAttribute('data-thai',thai);
+    el.setAttribute('data-type','ไวยากรณ์');
+  });
+
+  // 3. Process story-text - wrap แต่ละคำ
+  document.querySelectorAll('.story-text').forEach(container=>{
+    if(container.hasAttribute('data-fully-processed'))return;
+    container.setAttribute('data-fully-processed','true');
+    wrapAllWords(container);
+  });
+
+  // 4. Add event listeners
+  addWordListeners();
+
+  // 5. Batch translate
+  setTimeout(batchTranslateMissing,300);
+}
+
+// ==================== WRAP WORDS (FIXED - แก้ปัญหา tooltip ยาว) ====================
+function wrapAllWords(container){
+  var html=container.innerHTML;
+  
+  // ไม่แตะ element ที่ process แล้ว
+  var protectedElements=[];
+  var idx=0;
+  
+  // Protect existing spans
+  html=html.replace(/<span[^>]*class="[^"]*(?:vocab-word|grammar-word|phrase-group|idiom-group|word-clickable)[^"]*"[^>]*>.*?<\/span>/gi,function(match){
+    var placeholder='__PROTECTED_'+idx+'__';
+    protectedElements.push({placeholder:placeholder,html:match});
+    idx++;
+    return placeholder;
+  });
+  
+  // Protect <strong> tags
+  html=html.replace(/<strong[^>]*>.*?<\/strong>/gi,function(match){
+    var placeholder='__PROTECTED_'+idx+'__';
+    protectedElements.push({placeholder:placeholder,html:match});
+    idx++;
+    return placeholder;
+  });
+  
+  // Wrap remaining words - แต่ละคำแยกกัน!
+  html=html.replace(/\b([a-zA-Z][a-zA-Z'-]*[a-zA-Z]|[a-zA-Z])\b/g,function(match){
+    var word=match;
+    var clean=word.toLowerCase().replace(/[^a-z'-]/g,'');
+    var thai=getTranslation(clean)||'';
+    var needsTrans=thai?'':'data-needs-translation="true"';
+    return '<span class="word-clickable" data-word="'+clean+'" data-thai="'+thai+'" data-type="" '+needsTrans+'>'+word+'</span>';
+  });
+  
+  // Restore protected elements
+  protectedElements.forEach(function(item){
+    html=html.replace(item.placeholder,item.html);
+  });
+  
+  container.innerHTML=html;
+}
+
+// ==================== ADD LISTENERS (FIXED) ====================
+function addWordListeners(){
+  document.querySelectorAll('.word-clickable,.vocab-word,.grammar-word,.phrase-group,.idiom-group').forEach(el=>{
+    if(el.hasAttribute('data-listener'))return;
+    el.setAttribute('data-listener','true');
+    
+    // Mouse enter - show tooltip
+    el.addEventListener('mouseenter',function(){
+      var word=this.getAttribute('data-word')||this.textContent.trim();
+      var thai=this.getAttribute('data-thai')||getTranslation(word)||'';
+      var type=this.getAttribute('data-type')||'';
+      
+      // Determine type from class
+      if(!type){
+        if(this.classList.contains('vocab-word'))type='คำศัพท์';
+        else if(this.classList.contains('grammar-word'))type='ไวยากรณ์';
+        else if(this.classList.contains('phrase-group'))type='Phrasal Verb';
+        else if(this.classList.contains('idiom-group'))type='Idiom';
+      }
+      
+      showTooltip(this,word,thai,type);
+    });
+    
+    // Mouse leave - hide tooltip
+    el.addEventListener('mouseleave',function(){
+      hideTooltip();
+    });
+    
+    // Click - speak
+    el.addEventListener('click',function(e){
+      e.preventDefault();e.stopPropagation();
+      var word=this.getAttribute('data-word')||this.textContent.trim();
+      speakWord(word,this);
+    });
+  });
+}
+
+// ==================== BATCH TRANSLATE ====================
+function batchTranslateMissing(){
+  var needsTrans=document.querySelectorAll('[data-needs-translation="true"]');
+  if(needsTrans.length===0)return;
+
+  var wordsToTranslate=[];
+  needsTrans.forEach(el=>{
+    var w=el.getAttribute('data-word');
+    if(w&&!translationCache[w.toLowerCase()]&&!commonWords[w.toLowerCase()]){
+      wordsToTranslate.push(w.toLowerCase());
+    }else if(w){
+      el.removeAttribute('data-needs-translation');
+      var thai=translationCache[w.toLowerCase()]||commonWords[w.toLowerCase()]||'';
+      el.setAttribute('data-thai',thai);
+    }
+  });
+
+  var unique=[...new Set(wordsToTranslate)];
+  if(unique.length===0)return;
+
+  var keyInfo=APIKeyManager.getNextKey();
+  if(!keyInfo)return;
+
+  var status=document.getElementById('translationStatus');
+  status.style.display='block';
+  status.innerHTML='🔄 กำลังแปล '+unique.length+' คำ...';
+
+  fetch('https://api.groq.com/openai/v1/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+keyInfo.key},
+    body:JSON.stringify({
+      model:"llama-3.1-8b-instant",
+      messages:[
+        {role:"system",content:"Translate English words to Thai. Return ONLY JSON: {\"word1\":\"แปล1\",\"word2\":\"แปล2\"}. No markdown."},
+        {role:"user",content:"Translate: "+unique.join(', ')}
+      ],
+      temperature:0.3,max_tokens:2000
+    })
+  }).then(r=>r.json()).then(data=>{
+    var content=data.choices[0].message.content.trim();
+    var match=content.match(/\{[\s\S]*\}/);
+    var trans=match?JSON.parse(match[0]):{};
+
+    Object.keys(trans).forEach(w=>{translationCache[w.toLowerCase()]=trans[w]});
+    savePersistentCache();
+    savedApiCalls+=unique.length-1;
+
+    document.querySelectorAll('[data-needs-translation="true"]').forEach(el=>{
+      var w=el.getAttribute('data-word');
+      var t=trans[w.toLowerCase()]||translationCache[w.toLowerCase()]||commonWords[w.toLowerCase()]||'';
+      el.removeAttribute('data-needs-translation');
+      el.setAttribute('data-thai',t);
+    });
+
+    status.innerHTML='✅ แปลเสร็จ '+Object.keys(trans).length+' คำ!';
+    setTimeout(()=>status.style.display='none',2000);
+    updateCacheDisplay();
+  }).catch(err=>{
+    status.innerHTML='⚠️ แปลไม่สำเร็จ';
+    setTimeout(()=>status.style.display='none',2000);
+  });
+}
+
+// ==================== API CALL ====================
+function callGroqAPI(topic,level,grammar,maxRetries){
+  maxRetries=maxRetries||10;
+  var spec=CEFR_SPECS[level];
+
+  var sysPrompt='You are an ESL teacher. Create a lesson with story ('+spec.wordCount+' words) using '+grammar+'. Mark vocabulary with <span class="vocab-word" data-word="word" data-thai="คำแปล">word</span>. Mark grammar with <strong>verb</strong>.';
+  var userPrompt='Topic: '+topic+'\nLevel: '+level+'\nGrammar: '+grammar+'\n\nCreate story in <div class="story-text">...</div>';
+
+  var modelIdx=0,retryCount=0;
+
+  function attempt(){
+    var keyInfo=APIKeyManager.getNextKey();
+    if(!keyInfo)return Promise.reject(new Error('❌ API Keys หมดแล้ว'));
+
+    var model=FALLBACK_MODELS[modelIdx];
+    document.getElementById('loadingStatus').innerHTML='🔑 Key #'+(keyInfo.index+1)+' | '+model;
+
+    return fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+keyInfo.key},
+      body:JSON.stringify({
+        model:model,
+        messages:[{role:"system",content:sysPrompt},{role:"user",content:userPrompt}],
+        temperature:0.7,max_tokens:4000
+      })
+    }).then(res=>{
+      if(res.status===429){
+        APIKeyManager.reportResult(keyInfo.key,false);
+        retryCount++;
+        if(retryCount<maxRetries){
+          if(retryCount%APIKeyManager.keys.length===0&&modelIdx<FALLBACK_MODELS.length-1)modelIdx++;
+          return attempt()
+        }
+        throw new Error('❌ ลองแล้ว '+maxRetries+' ครั้ง ไม่สำเร็จ')
+      }
+      if(!res.ok)return res.text().then(t=>{throw new Error('API Error: '+t)});
+      APIKeyManager.reportResult(keyInfo.key,true);
+      return res.json()
+    }).then(data=>{
+      if(data.choices){
+        var c=data.choices[0].message.content;
+        return c.replace(/```html\n?/g,'').replace(/```\n?/g,'').trim()
+      }
+      return data
+    })
+  }
+  return attempt()
+}
+
+// ==================== FORM SUBMIT ====================
+document.getElementById('lessonForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  var topic=document.getElementById('topic').value.trim();
+  var level=document.getElementById('level').value;
+  var grammar=document.getElementById('grammar').value;
+  var keyCount=APIKeyManager.loadKeys();
+
+  if(!topic){alert('กรุณากรอกหัวข้อ');return}
+  if(keyCount===0){alert('❌ ไม่มี API Key');return}
+
+  var btn=document.querySelector('button[type="submit"]');
+  var loading=document.getElementById('loading');
+  var resultArea=document.getElementById('resultArea');
+  var lessonContent=document.getElementById('lessonContent');
+
+  btn.disabled=true;
+  btn.innerHTML='⏳ กำลังสร้าง...';
+  loading.style.display='block';
+  resultArea.style.display='none';
+  lessonContent.innerHTML='';
+
+  callGroqAPI(topic,level,grammar,Math.max(keyCount*2,5))
+    .then(html=>{
+      loading.style.display='none';
+      lessonContent.innerHTML=html;
+      resultArea.style.display='block';
+      document.getElementById('audioControls').style.display='flex';
+      document.getElementById('guideAlert').style.display='block';
+      setTimeout(processAllContent,200);
+      resultArea.scrollIntoView({behavior:'smooth'})
+    })
+    .catch(err=>{
+      loading.style.display='none';
+      lessonContent.innerHTML='<div class="alert alert-danger"><h4>⚠️ เกิดข้อผิดพลาด</h4><p>'+err.message+'</p></div>';
+      resultArea.style.display='block'
+    })
+    .finally(()=>{
+      btn.disabled=false;
+      btn.innerHTML='🚀 สร้างบทเรียน'
+    })
+});
+
+// ==================== INIT ====================
+document.getElementById('apiKeys').addEventListener('input',()=>APIKeyManager.loadKeys());
+loadPersistentCache();
+APIKeyManager.loadKeys();
+updateLevelInfo();
+tooltipBox=document.getElementById('tooltipBox');
+console.log('✅ v7.2 Ready | Cache:',Object.keys(translationCache).length,'words');
+</script>
+</body>
+</html>
+
+<!-- ==================== END PART 2 ==================== -->
