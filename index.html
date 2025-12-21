@@ -3,11 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AI Story Tailor v7.7.1 - Beauty & Power</title>
+  <title>AI Story Tailor v7.7.2 - Internal Multi-Key</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
-    /* ใช้ Gradient สวยงามจากรุ่น 70B */
     body {
       font-family: 'Sarabun', sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -26,25 +25,15 @@
       color: white;
       padding: 30px;
       text-align: center;
-      border-bottom: none;
     }
-    .card-header h2 { font-weight: 600; margin-bottom: 5px; }
-    
     .api-management {
-      background: #f8f9fa;
-      padding: 20px;
+      background: #f1f3f5;
+      padding: 10px 20px;
       border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .key-input {
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      transition: all 0.3s;
-    }
-    .key-input:focus {
-      border-color: #667eea;
-      box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
-    }
-
     .story-display {
       line-height: 2.4;
       font-size: 1.25rem;
@@ -55,32 +44,27 @@
       margin-top: 20px;
       box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
     }
-    
     .word-clickable {
       cursor: pointer;
       border-bottom: 2px dotted #667eea;
       transition: all 0.2s;
-      color: #2d3748;
     }
     .word-clickable:hover {
       background-color: rgba(102, 126, 234, 0.1);
       color: #667eea;
       border-radius: 4px;
     }
-
     .tooltip-box {
       position: absolute;
       background: #1e293b;
       color: white;
       padding: 12px 18px;
       border-radius: 10px;
-      font-size: 1rem;
-      z-index: 10000;
       display: none;
       pointer-events: none;
+      z-index: 10000;
       box-shadow: 0 10px 25px rgba(0,0,0,0.3);
     }
-
     .btn-generate {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       border: none;
@@ -88,15 +72,11 @@
       font-weight: 600;
       padding: 15px;
       border-radius: 12px;
-      transition: transform 0.2s;
+      transition: all 0.2s;
     }
-    .btn-generate:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-      color: white;
-    }
-    
+    .btn-generate:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
     #loading { display: none; }
+    .status-badge { font-size: 0.75rem; padding: 4px 8px; border-radius: 20px; background: #d4edda; color: #155724; }
   </style>
 </head>
 <body>
@@ -106,38 +86,26 @@
     <div class="col-lg-10">
       <div class="card main-card">
         <div class="card-header">
-          <h2>✨ AI Story Tailor v7.7.1</h2>
-          <p class="mb-0 opacity-75">Premium Look | Multi-Key Support | High Speed 8B</p>
+          <h2>✨ AI Story Tailor v7.7.2</h2>
+          <p class="mb-0 opacity-75">คลาสเรียน 50 คน | ระบบ 5-Keys ฝังในตัว</p>
         </div>
         
         <div class="api-management">
-          <div class="row g-2">
-            <div class="col-md-4"><input type="password" id="k1" class="form-control form-control-sm key-input" placeholder="🔑 API Key 1"></div>
-            <div class="col-md-4"><input type="password" id="k2" class="form-control form-control-sm key-input" placeholder="🔑 API Key 2"></div>
-            <div class="col-md-4"><input type="password" id="k3" class="form-control form-control-sm key-input" placeholder="🔑 API Key 3"></div>
-            <div class="col-md-6"><input type="password" id="k4" class="form-control form-control-sm key-input" placeholder="🔑 API Key 4"></div>
-            <div class="col-md-6"><input type="password" id="k5" class="form-control form-control-sm key-input" placeholder="🔑 API Key 5"></div>
-          </div>
-          <div class="mt-3 d-flex justify-content-between">
-            <small class="text-muted">ใส่ Key ได้สูงสุด 5 บัญชีเพื่อรองรับนักเรียน 50 คน</small>
-            <div>
-              <button class="btn btn-dark btn-sm shadow-sm" onclick="saveKeys()">💾 บันทึก Keys</button>
-              <button class="btn btn-outline-danger btn-sm" onclick="secureClear()">🗑️ ล้างข้อมูล</button>
-            </div>
-          </div>
+          <div><span class="status-badge">● API System Ready (8B)</span></div>
+          <button class="btn btn-link btn-sm text-muted" onclick="secureReset()">ล้างความจำเครื่อง</button>
         </div>
 
         <div class="card-body p-4">
           <div class="mb-4">
-            <label class="form-label fw-bold">📝 หัวข้อบทเรียน:</label>
-            <input type="text" id="topic" class="form-control form-control-lg shadow-sm" placeholder="เช่น การผจญภัยของมังกรตัวน้อย">
+            <label class="form-label fw-bold">📝 ใส่หัวข้อเรื่องที่อยากเรียนรู้:</label>
+            <input type="text" id="topic" class="form-control form-control-lg shadow-sm" placeholder="เช่น สัตว์ป่าในแอฟริกา, การไปเที่ยวทะเล...">
           </div>
           
-          <button onclick="generate()" id="genBtn" class="btn btn-generate w-100 shadow">🚀 เริ่มแต่งเรื่องภาษาอังกฤษ</button>
+          <button onclick="generate()" id="genBtn" class="btn btn-generate w-100 shadow">🚀 สร้างบทเรียนภาษาอังกฤษ</button>
 
           <div id="loading" class="text-center my-5">
             <div class="spinner-border text-primary" style="width: 3.5rem; height: 3.5rem;"></div>
-            <p class="mt-3 fw-bold text-secondary">AI กำลังเลือก Key และรังสรรค์เนื้อเรื่อง...</p>
+            <p class="mt-3 fw-bold text-secondary">AI กำลังทำงาน... (นักเรียนสามารถแบ่งกลุ่มกันกดเพื่อความเร็ว)</p>
           </div>
 
           <div id="storyOut" class="story-display mt-4 shadow-sm" style="display:none;"></div>
@@ -150,38 +118,31 @@
 <div id="tbox" class="tooltip-box"></div>
 
 <script>
-  window.onload = () => {
-    for(let i=1; i<=5; i++) document.getElementById('k'+i).value = localStorage.getItem('gk'+i) || '';
-  };
+  // ฝัง API Keys ของคุณไว้ใน Array
+  const INTERNAL_KEYS = [
+    "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",
+    "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",
+    "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",
+    "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",
+    "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"
+  ];
 
-  function saveKeys() {
-    for(let i=1; i<=5; i++) localStorage.setItem('gk'+i, document.getElementById('k'+i).value.trim());
-    alert('บันทึกข้อมูลเรียบร้อย! ระบบจะจำ Key ไว้ในเครื่องนี้');
-  }
-
-  function secureClear() {
-    const pw = prompt("กรุณาใส่รหัสผ่านเพื่อล้าง Key:");
+  function secureReset() {
+    const pw = prompt("กรุณาใส่รหัสผ่านเพื่อรีเซ็ต:");
     if(pw === "pass3") {
-        for(let i=1; i<=5; i++) {
-            document.getElementById('k'+i).value = '';
-            localStorage.removeItem('gk'+i);
-        }
-        alert('ล้างข้อมูลหมดแล้ว');
+        localStorage.clear();
+        alert('รีเซ็ตระบบเรียบร้อย');
+        location.reload();
     } else { alert('รหัสผ่านไม่ถูกต้อง'); }
   }
 
   async function generate() {
-    let keys = [];
-    for(let i=1; i<=5; i++) {
-        let v = document.getElementById('k'+i).value.trim();
-        if(v.startsWith('gsk_')) keys.push(v);
-    }
-    
-    if(keys.length === 0) return alert('กรุณาใส่ API Key อย่างน้อย 1 ช่อง');
     const topic = document.getElementById('topic').value;
     if(!topic) return alert('กรุณาระบุหัวข้อเรื่อง');
 
-    const skey = keys[Math.floor(Math.random() * keys.length)];
+    // สุ่มเลือก Key จากที่ฝังไว้
+    const skey = INTERNAL_KEYS[Math.floor(Math.random() * INTERNAL_KEYS.length)];
+    
     const btn = document.getElementById('genBtn');
     const load = document.getElementById('loading');
     const out = document.getElementById('storyOut');
@@ -198,7 +159,7 @@
           model: "llama-3.1-8b-instant",
           messages: [{
             role: "user", 
-            content: `Write a short story about "${topic}" in English (Elementary Level). Use 3 paragraphs. Only output the story text.`
+            content: `Create a short English story for students about "${topic}" (Level A2). Use 3 simple paragraphs. No intro/outro.`
           }],
           temperature: 0.7
         })
@@ -207,22 +168,21 @@
       const data = await res.json();
       if(data.error) throw new Error(data.error.message);
       
-      renderContent(data.choices[0].message.content);
+      render(data.choices[0].message.content);
       out.style.display = 'block';
       out.scrollIntoView({ behavior: 'smooth' });
     } catch(err) {
-      alert("Error: " + err.message);
+      alert("ขออภัย! ระบบหนาแน่นชั่วคราว กรุณารอ 1 นาทีแล้วกดใหม่ครับ");
     } finally {
       btn.disabled = false;
       load.style.display = 'none';
     }
   }
 
-  function renderContent(txt) {
+  function render(txt) {
     const out = document.getElementById('storyOut');
     out.innerHTML = '';
     const paragraphs = txt.split('\n\n');
-    
     paragraphs.forEach(pTxt => {
       const p = document.createElement('p');
       const words = pTxt.split(/(\s+)/);
@@ -231,7 +191,7 @@
           const span = document.createElement('span');
           span.className = 'word-clickable';
           span.textContent = w;
-          span.onmouseover = (e) => showTrans(e, w);
+          span.onmouseover = (e) => translate(e, w);
           span.onmouseout = () => document.getElementById('tbox').style.display='none';
           span.onclick = () => {
             const ut = new SpeechSynthesisUtterance(w.replace(/[^\w]/g,''));
@@ -247,21 +207,18 @@
     });
   }
 
-  async function showTrans(e, w) {
-    const cleanWord = w.replace(/[.,!?;:"]/g, '');
+  async function translate(e, w) {
+    const cw = w.replace(/[.,!?;:"]/g, '');
     const tb = document.getElementById('tbox');
     tb.style.display = 'block';
     tb.style.left = (e.pageX + 10) + 'px';
     tb.style.top = (e.pageY + 10) + 'px';
     tb.innerHTML = '...';
-
     try {
-      const r = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=th&dt=t&q=${cleanWord}`);
+      const r = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=th&dt=t&q=${cw}`);
       const d = await r.json();
-      tb.innerHTML = `<strong>${cleanWord}</strong><br><span style="color:#fbbf24">แปล: ${d[0][0][0]}</span>`;
-    } catch {
-      tb.innerHTML = cleanWord;
-    }
+      tb.innerHTML = `<strong>${cw}</strong><br><span style="color:#fbbf24">แปล: ${d[0][0][0]}</span>`;
+    } catch { tb.innerHTML = cw; }
   }
 </script>
 </body>
