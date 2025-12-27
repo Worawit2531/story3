@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AI Story Tailor v7.7.2 - Internal Multi-Key</title>
+  <title>AI Story Tailor v7.8.0 - Secure Edition</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
@@ -33,6 +33,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
     }
     .story-display {
       line-height: 2.4;
@@ -48,9 +50,10 @@
       cursor: pointer;
       border-bottom: 2px dotted #667eea;
       transition: all 0.2s;
+      padding: 2px 0;
     }
     .word-clickable:hover {
-      background-color: rgba(102, 126, 234, 0.1);
+      background-color: rgba(102, 126, 234, 0.15);
       color: #667eea;
       border-radius: 4px;
     }
@@ -64,6 +67,7 @@
       pointer-events: none;
       z-index: 10000;
       box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      max-width: 250px;
     }
     .btn-generate {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -74,9 +78,55 @@
       border-radius: 12px;
       transition: all 0.2s;
     }
-    .btn-generate:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+    .btn-generate:hover:not(:disabled) { 
+      transform: translateY(-2px); 
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); 
+      color: white;
+    }
+    .btn-generate:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
     #loading { display: none; }
-    .status-badge { font-size: 0.75rem; padding: 4px 8px; border-radius: 20px; background: #d4edda; color: #155724; }
+    .status-badge { 
+      font-size: 0.75rem; 
+      padding: 4px 12px; 
+      border-radius: 20px; 
+      background: #d4edda; 
+      color: #155724; 
+    }
+    .status-badge.error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .setup-alert {
+      background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+      border: none;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .setup-alert h5 {
+      color: #856404;
+      margin-bottom: 15px;
+    }
+    .setup-alert code {
+      background: rgba(0,0,0,0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .help-text {
+      font-size: 0.85rem;
+      color: #6c757d;
+      margin-top: 8px;
+    }
+    .speaking {
+      animation: pulse 0.5s ease-in-out;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); background-color: rgba(102, 126, 234, 0.3); }
+    }
   </style>
 </head>
 <body>
@@ -86,30 +136,64 @@
     <div class="col-lg-10">
       <div class="card main-card">
         <div class="card-header">
-          <h2>✨ AI Story Tailor v7.7.2</h2>
-          <p class="mb-0 opacity-75">คลาสเรียน 50 คน | ระบบ 5-Keys ฝังในตัว</p>
+          <h2>✨ AI Story Tailor v7.8.0</h2>
+          <p class="mb-0 opacity-75">Secure Edition - ระบบปลอดภัย ไม่หลุด API Key</p>
         </div>
         
         <div class="api-management">
-          <div><span class="status-badge">● API System Ready (8B)</span></div>
-          <button class="btn btn-link btn-sm text-muted" onclick="secureReset()">ล้างความจำเครื่อง</button>
+          <div>
+            <span id="statusBadge" class="status-badge">● กำลังตรวจสอบระบบ...</span>
+          </div>
+          <button class="btn btn-outline-secondary btn-sm" onclick="showSetup()">⚙️ ตั้งค่า</button>
         </div>
 
         <div class="card-body p-4">
+          
+          <!-- Setup Section (ซ่อนไว้เมื่อตั้งค่าแล้ว) -->
+          <div id="setupSection" class="setup-alert" style="display:none;">
+            <h5>🔧 ตั้งค่าระบบ (ครั้งแรกเท่านั้น)</h5>
+            <div class="mb-3">
+              <label class="form-label">Google Apps Script URL:</label>
+              <input type="text" id="apiUrl" class="form-control" placeholder="https://script.google.com/macros/s/xxx/exec">
+              <div class="help-text">วาง URL ที่ได้จากการ Deploy Google Apps Script</div>
+            </div>
+            <button onclick="saveSetup()" class="btn btn-warning">💾 บันทึกการตั้งค่า</button>
+            <button onclick="hideSetup()" class="btn btn-outline-secondary ms-2">ยกเลิก</button>
+          </div>
+
           <div class="mb-4">
             <label class="form-label fw-bold">📝 ใส่หัวข้อเรื่องที่อยากเรียนรู้:</label>
-            <input type="text" id="topic" class="form-control form-control-lg shadow-sm" placeholder="เช่น สัตว์ป่าในแอฟริกา, การไปเที่ยวทะเล...">
+            <input type="text" id="topic" class="form-control form-control-lg shadow-sm" 
+                   placeholder="เช่น สัตว์ป่าในแอฟริกา, การไปเที่ยวทะเล, แมวกล้าหาญสำรวจป่า...">
           </div>
           
-          <button onclick="generate()" id="genBtn" class="btn btn-generate w-100 shadow">🚀 สร้างบทเรียนภาษาอังกฤษ</button>
+          <button onclick="generate()" id="genBtn" class="btn btn-generate w-100 shadow">
+            🚀 สร้างบทเรียนภาษาอังกฤษ
+          </button>
 
           <div id="loading" class="text-center my-5">
             <div class="spinner-border text-primary" style="width: 3.5rem; height: 3.5rem;"></div>
-            <p class="mt-3 fw-bold text-secondary">AI กำลังทำงาน... (นักเรียนสามารถแบ่งกลุ่มกันกดเพื่อความเร็ว)</p>
+            <p class="mt-3 fw-bold text-secondary">AI กำลังสร้างเรื่องราว...</p>
           </div>
 
+          <div id="errorMsg" class="alert alert-danger mt-3" style="display:none;"></div>
+
           <div id="storyOut" class="story-display mt-4 shadow-sm" style="display:none;"></div>
+          
+          <!-- คำแนะนำการใช้งาน -->
+          <div id="instructions" class="mt-4 p-3 bg-light rounded">
+            <h6 class="text-muted">💡 วิธีใช้งาน:</h6>
+            <ul class="text-muted small mb-0">
+              <li><strong>ชี้คำศัพท์</strong> - ดูคำแปลภาษาไทย</li>
+              <li><strong>คลิกคำศัพท์</strong> - ฟังเสียงอ่านออกเสียง</li>
+            </ul>
+          </div>
         </div>
+      </div>
+      
+      <!-- Credit -->
+      <div class="text-center mt-3 text-white-50 small">
+        พัฒนาสำหรับห้องเรียนภาษาอังกฤษ | Secure API System
       </div>
     </div>
   </div>
@@ -118,107 +202,218 @@
 <div id="tbox" class="tooltip-box"></div>
 
 <script>
-  // ฝัง API Keys ของคุณไว้ใน Array
-  const INTERNAL_KEYS = [
-    "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",
-    "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",
-    "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",
-    "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",
-    "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"
-  ];
+  // ==================== Configuration ====================
+  const STORAGE_KEY = 'storyTailorApiUrl';
+  
+  // ==================== Initialization ====================
+  document.addEventListener('DOMContentLoaded', function() {
+    checkApiStatus();
+    
+    // Enter key to generate
+    document.getElementById('topic').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') generate();
+    });
+  });
 
-  function secureReset() {
-    const pw = prompt("กรุณาใส่รหัสผ่านเพื่อรีเซ็ต:");
-    if(pw === "pass3") {
-        localStorage.clear();
-        alert('รีเซ็ตระบบเรียบร้อย');
-        location.reload();
-    } else { alert('รหัสผ่านไม่ถูกต้อง'); }
+  // ==================== Setup Functions ====================
+  function getApiUrl() {
+    return localStorage.getItem(STORAGE_KEY) || '';
   }
 
-  async function generate() {
-    const topic = document.getElementById('topic').value;
-    if(!topic) return alert('กรุณาระบุหัวข้อเรื่อง');
+  function showSetup() {
+    document.getElementById('setupSection').style.display = 'block';
+    document.getElementById('apiUrl').value = getApiUrl();
+  }
 
-    // สุ่มเลือก Key จากที่ฝังไว้
-    const skey = INTERNAL_KEYS[Math.floor(Math.random() * INTERNAL_KEYS.length)];
+  function hideSetup() {
+    document.getElementById('setupSection').style.display = 'none';
+  }
+
+  function saveSetup() {
+    const url = document.getElementById('apiUrl').value.trim();
+    if (!url) {
+      alert('กรุณาใส่ URL ของ Google Apps Script');
+      return;
+    }
+    if (!url.startsWith('https://script.google.com/')) {
+      alert('URL ไม่ถูกต้อง ต้องเป็น https://script.google.com/...');
+      return;
+    }
+    localStorage.setItem(STORAGE_KEY, url);
+    hideSetup();
+    checkApiStatus();
+    alert('บันทึกการตั้งค่าเรียบร้อย!');
+  }
+
+  async function checkApiStatus() {
+    const badge = document.getElementById('statusBadge');
+    const url = getApiUrl();
     
+    if (!url) {
+      badge.textContent = '⚠️ ยังไม่ได้ตั้งค่า';
+      badge.className = 'status-badge error';
+      showSetup();
+      return;
+    }
+
+    badge.textContent = '● กำลังตรวจสอบ...';
+    
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.status === 'ok') {
+        badge.textContent = `● ระบบพร้อมใช้งาน (${data.version || 'OK'})`;
+        badge.className = 'status-badge';
+      } else {
+        throw new Error('Invalid response');
+      }
+    } catch (err) {
+      badge.textContent = '⚠️ เชื่อมต่อไม่ได้';
+      badge.className = 'status-badge error';
+    }
+  }
+
+  // ==================== Story Generation ====================
+  async function generate() {
+    const topic = document.getElementById('topic').value.trim();
+    if (!topic) {
+      alert('กรุณาระบุหัวข้อเรื่อง');
+      return;
+    }
+
+    const apiUrl = getApiUrl();
+    if (!apiUrl) {
+      alert('กรุณาตั้งค่า API URL ก่อน');
+      showSetup();
+      return;
+    }
+
     const btn = document.getElementById('genBtn');
     const load = document.getElementById('loading');
     const out = document.getElementById('storyOut');
+    const errMsg = document.getElementById('errorMsg');
+    const instructions = document.getElementById('instructions');
 
     btn.disabled = true;
     load.style.display = 'block';
     out.style.display = 'none';
+    errMsg.style.display = 'none';
 
     try {
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const res = await fetch(apiUrl, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${skey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: "llama-3.1-8b-instant",
-          messages: [{
-            role: "user", 
-            content: `Create a short English story for students about "${topic}" (Level A2). Use 3 simple paragraphs. No intro/outro.`
-          }],
-          temperature: 0.7
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic: topic })
       });
 
       const data = await res.json();
-      if(data.error) throw new Error(data.error.message);
       
-      render(data.choices[0].message.content);
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      if (!data.story) {
+        throw new Error('ไม่ได้รับเรื่องราวจากระบบ');
+      }
+
+      renderStory(data.story);
       out.style.display = 'block';
+      instructions.style.display = 'block';
       out.scrollIntoView({ behavior: 'smooth' });
-    } catch(err) {
-      alert("ขออภัย! ระบบหนาแน่นชั่วคราว กรุณารอ 1 นาทีแล้วกดใหม่ครับ");
+
+    } catch (err) {
+      console.error('Generation error:', err);
+      errMsg.textContent = '❌ ' + (err.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+      errMsg.style.display = 'block';
     } finally {
       btn.disabled = false;
       load.style.display = 'none';
     }
   }
 
-  function render(txt) {
+  // ==================== Story Rendering ====================
+  function renderStory(txt) {
     const out = document.getElementById('storyOut');
     out.innerHTML = '';
-    const paragraphs = txt.split('\n\n');
+    
+    const paragraphs = txt.split(/\n\n+/);
+    
     paragraphs.forEach(pTxt => {
+      if (!pTxt.trim()) return;
+      
       const p = document.createElement('p');
-      const words = pTxt.split(/(\s+)/);
-      words.forEach(w => {
-        if(/[a-zA-Z]/.test(w)) {
+      p.style.marginBottom = '1.5rem';
+      
+      // Split by words while keeping spaces and punctuation
+      const tokens = pTxt.split(/(\s+)/);
+      
+      tokens.forEach(token => {
+        if (/[a-zA-Z]/.test(token)) {
           const span = document.createElement('span');
           span.className = 'word-clickable';
-          span.textContent = w;
-          span.onmouseover = (e) => translate(e, w);
-          span.onmouseout = () => document.getElementById('tbox').style.display='none';
-          span.onclick = () => {
-            const ut = new SpeechSynthesisUtterance(w.replace(/[^\w]/g,''));
-            ut.lang = 'en-US';
-            speechSynthesis.speak(ut);
-          };
+          span.textContent = token;
+          
+          // Hover to translate
+          span.addEventListener('mouseover', (e) => showTranslation(e, token));
+          span.addEventListener('mouseout', hideTooltip);
+          
+          // Click to speak
+          span.addEventListener('click', () => speakWord(token, span));
+          
           p.appendChild(span);
         } else {
-          p.appendChild(document.createTextNode(w));
+          p.appendChild(document.createTextNode(token));
         }
       });
+      
       out.appendChild(p);
     });
   }
 
-  async function translate(e, w) {
-    const cw = w.replace(/[.,!?;:"]/g, '');
+  // ==================== Translation ====================
+  async function showTranslation(e, word) {
+    const cleanWord = word.replace(/[.,!?;:"'()]/g, '').toLowerCase();
     const tb = document.getElementById('tbox');
+    
+    // Position tooltip
+    const rect = e.target.getBoundingClientRect();
+    tb.style.left = (window.scrollX + rect.left) + 'px';
+    tb.style.top = (window.scrollY + rect.bottom + 8) + 'px';
     tb.style.display = 'block';
-    tb.style.left = (e.pageX + 10) + 'px';
-    tb.style.top = (e.pageY + 10) + 'px';
-    tb.innerHTML = '...';
+    tb.innerHTML = '<span style="opacity:0.7">กำลังแปล...</span>';
+
     try {
-      const r = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=th&dt=t&q=${cw}`);
+      const r = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=th&dt=t&q=${encodeURIComponent(cleanWord)}`);
       const d = await r.json();
-      tb.innerHTML = `<strong>${cw}</strong><br><span style="color:#fbbf24">แปล: ${d[0][0][0]}</span>`;
-    } catch { tb.innerHTML = cw; }
+      const translation = d[0][0][0];
+      
+      tb.innerHTML = `
+        <div><strong style="font-size:1.1em">${cleanWord}</strong></div>
+        <div style="color:#fbbf24; margin-top:4px">🇹🇭 ${translation}</div>
+        <div style="font-size:0.75em; opacity:0.6; margin-top:4px">คลิกเพื่อฟังเสียง</div>
+      `;
+    } catch (err) {
+      tb.innerHTML = `<strong>${cleanWord}</strong><br><span style="opacity:0.6">ไม่สามารถแปลได้</span>`;
+    }
+  }
+
+  function hideTooltip() {
+    document.getElementById('tbox').style.display = 'none';
+  }
+
+  // ==================== Text-to-Speech ====================
+  function speakWord(word, element) {
+    const cleanWord = word.replace(/[.,!?;:"'()]/g, '');
+    
+    // Visual feedback
+    element.classList.add('speaking');
+    setTimeout(() => element.classList.remove('speaking'), 500);
+    
+    // Speak
+    const utterance = new SpeechSynthesisUtterance(cleanWord);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.8; // Slower for learning
+    speechSynthesis.speak(utterance);
   }
 </script>
 </body>
