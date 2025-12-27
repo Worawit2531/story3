@@ -3,180 +3,53 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AI Story Tailor v7.9.0 - Secure Edition</title>
+  <title>AI Story Tailor v7.9.5</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Sarabun', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      padding: 20px 0;
-    }
-    .main-card {
-      border-radius: 20px;
-      border: none;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      background: white;
-      overflow: hidden;
-    }
-    .card-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 30px;
-      text-align: center;
-    }
-    .api-management {
-      background: #f1f3f5;
-      padding: 10px 20px;
-      border-bottom: 1px solid #eee;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .story-display {
-      line-height: 2.4;
-      font-size: 1.25rem;
-      color: #333;
-      padding: 30px;
-      background: #ffffff;
-      border-radius: 15px;
-      margin-top: 20px;
-      box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
-    }
-    .word-clickable {
-      cursor: pointer;
-      border-bottom: 2px dotted #667eea;
-      transition: all 0.2s;
-      padding: 2px 0;
-    }
-    .word-clickable:hover {
-      background-color: rgba(102, 126, 234, 0.15);
-      color: #667eea;
-      border-radius: 4px;
-    }
-    .tooltip-box {
-      position: absolute;
-      background: #1e293b;
-      color: white;
-      padding: 12px 18px;
-      border-radius: 10px;
-      display: none;
-      pointer-events: none;
-      z-index: 10000;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-      max-width: 250px;
-    }
-    .btn-generate {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border: none;
-      color: white;
-      font-weight: 600;
-      padding: 15px;
-      border-radius: 12px;
-      transition: all 0.2s;
-    }
-    .btn-generate:hover:not(:disabled) { 
-      transform: translateY(-2px); 
-      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); 
-      color: white;
-    }
-    .btn-generate:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-    }
-    #loading { display: none; }
-    .status-badge { 
-      font-size: 0.75rem; 
-      padding: 4px 12px; 
-      border-radius: 20px; 
-      background: #d4edda; 
-      color: #155724; 
-    }
-    .status-badge.error {
-      background: #f8d7da;
-      color: #721c24;
-    }
-    .setup-alert {
-      background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
-      border: none;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-    .setup-alert h5 {
-      color: #856404;
-      margin-bottom: 15px;
-    }
-    .help-text {
-      font-size: 0.85rem;
-      color: #6c757d;
-      margin-top: 8px;
-    }
-    .speaking {
-      animation: pulse 0.5s ease-in-out;
-    }
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.1); background-color: rgba(102, 126, 234, 0.3); }
-    }
+    body{font-family:'Sarabun',sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:20px 0}
+    .main-card{border-radius:20px;border:none;box-shadow:0 20px 60px rgba(0,0,0,0.3);background:#fff;overflow:hidden}
+    .card-header{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:30px;text-align:center}
+    .api-management{background:#f1f3f5;padding:10px 20px;border-bottom:1px solid #eee;display:flex;justify-content:center;align-items:center}
+    .story-display{line-height:2.4;font-size:1.25rem;color:#333;padding:30px;background:#fff;border-radius:15px;margin-top:20px}
+    .word-clickable{cursor:pointer;border-bottom:2px dotted #667eea;transition:all 0.2s;padding:2px 0}
+    .word-clickable:hover{background-color:rgba(102,126,234,0.15);color:#667eea;border-radius:4px}
+    .tooltip-box{position:absolute;background:#1e293b;color:#fff;padding:12px 18px;border-radius:10px;display:none;pointer-events:none;z-index:10000;box-shadow:0 10px 25px rgba(0,0,0,0.3);max-width:250px}
+    .btn-generate{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border:none;color:#fff;font-weight:600;padding:15px;border-radius:12px;transition:all 0.2s}
+    .btn-generate:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 5px 15px rgba(102,126,234,0.4);color:#fff}
+    .btn-generate:disabled{opacity:0.7}
+    #loading{display:none}
+    .status-badge{font-size:0.75rem;padding:4px 12px;border-radius:20px;background:#d4edda;color:#155724}
+    .status-badge.error{background:#f8d7da;color:#721c24}
+    .speaking{animation:pulse 0.5s ease-in-out}
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1);background-color:rgba(102,126,234,0.3)}}
   </style>
 </head>
 <body>
-
 <div class="container">
   <div class="row justify-content-center">
     <div class="col-lg-10">
       <div class="card main-card">
         <div class="card-header">
-          <h2>✨ AI Story Tailor v7.9.0</h2>
+          <h2>✨ AI Story Tailor v7.9.5</h2>
           <p class="mb-0 opacity-75">Secure Edition - ระบบปลอดภัย ไม่หลุด API Key</p>
         </div>
-        
         <div class="api-management">
-          <div>
-            <span id="statusBadge" class="status-badge">● กำลังตรวจสอบระบบ...</span>
-          </div>
-          <button class="btn btn-outline-secondary btn-sm" onclick="showSetup()">⚙️ ตั้งค่า</button>
+          <span id="statusBadge" class="status-badge">● กำลังตรวจสอบ...</span>
         </div>
-
         <div class="card-body p-4">
-          
-          <!-- Setup Section -->
-          <div id="setupSection" class="setup-alert" style="display:none;">
-            <h5>🔧 ตั้งค่าระบบ (ครั้งแรกเท่านั้น)</h5>
-            <div class="mb-3">
-              <label class="form-label">Google Apps Script URL:</label>
-              <input type="text" id="apiUrl" class="form-control" placeholder="https://script.google.com/macros/s/xxx/exec">
-              <div class="help-text">วาง URL ที่ได้จากการ Deploy Google Apps Script</div>
-            </div>
-            <button onclick="saveSetup()" class="btn btn-warning">💾 บันทึกการตั้งค่า</button>
-            <button onclick="hideSetup()" class="btn btn-outline-secondary ms-2">ยกเลิก</button>
-          </div>
-
           <div class="mb-4">
             <label class="form-label fw-bold">📝 ใส่หัวข้อเรื่องที่อยากเรียนรู้:</label>
-            <input type="text" id="topic" class="form-control form-control-lg shadow-sm" 
-                   placeholder="เช่น สัตว์ป่าในแอฟริกา, การไปเที่ยวทะเล, แมวกล้าหาญสำรวจป่า...">
+            <input type="text" id="topic" class="form-control form-control-lg shadow-sm" placeholder="เช่น สัตว์ป่า, การไปเที่ยวทะเล, ครอบครัว...">
           </div>
-          
-          <button onclick="generate()" id="genBtn" class="btn btn-generate w-100 shadow">
-            🚀 สร้างบทเรียนภาษาอังกฤษ
-          </button>
-
+          <button onclick="generate()" id="genBtn" class="btn btn-generate w-100 shadow">🚀 สร้างบทเรียนภาษาอังกฤษ</button>
           <div id="loading" class="text-center my-5">
-            <div class="spinner-border text-primary" style="width: 3.5rem; height: 3.5rem;"></div>
+            <div class="spinner-border text-primary" style="width:3.5rem;height:3.5rem"></div>
             <p class="mt-3 fw-bold text-secondary">AI กำลังสร้างเรื่องราว...</p>
           </div>
-
           <div id="errorMsg" class="alert alert-danger mt-3" style="display:none;"></div>
-
           <div id="storyOut" class="story-display mt-4 shadow-sm" style="display:none;"></div>
-          
-          <!-- คำแนะนำการใช้งาน -->
-          <div id="instructions" class="mt-4 p-3 bg-light rounded">
+          <div class="mt-4 p-3 bg-light rounded">
             <h6 class="text-muted">💡 วิธีใช้งาน:</h6>
             <ul class="text-muted small mb-0">
               <li><strong>ชี้คำศัพท์</strong> - ดูคำแปลภาษาไทย</li>
@@ -185,207 +58,112 @@
           </div>
         </div>
       </div>
-      
-      <div class="text-center mt-3 text-white-50 small">
-        พัฒนาสำหรับห้องเรียนภาษาอังกฤษ | Secure API System
-      </div>
     </div>
   </div>
 </div>
-
 <div id="tbox" class="tooltip-box"></div>
-
 <script>
-  const STORAGE_KEY = 'storyTailorApiUrl';
-  
-  document.addEventListener('DOMContentLoaded', function() {
-    checkApiStatus();
-    document.getElementById('topic').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') generate();
+// ฝัง URL ไว้เลย - ไม่ต้องตั้งค่า
+const API_URL = 'https://script.google.com/macros/s/AKfycbx7sJXcgwZi_jo-vkPqGrObxW8iXXr4wm5aGxKIUPc9YFMYumrkQ9EI_zYmdLv6-ae0TA/exec';
+
+document.addEventListener('DOMContentLoaded',()=>{
+  checkApiStatus();
+  document.getElementById('topic').addEventListener('keypress',e=>{if(e.key==='Enter')generate()});
+});
+
+async function checkApiStatus(){
+  const badge=document.getElementById('statusBadge');
+  badge.textContent='● กำลังตรวจสอบ...';
+  try{
+    const res=await fetch(API_URL);
+    const data=await res.json();
+    if(data.status==='ok'){
+      badge.textContent='● ระบบพร้อมใช้งาน';
+      badge.className='status-badge';
+    }else throw new Error();
+  }catch(e){
+    badge.textContent='⚠️ เชื่อมต่อไม่ได้';
+    badge.className='status-badge error';
+  }
+}
+
+async function generate(){
+  const topic=document.getElementById('topic').value.trim();
+  if(!topic){alert('กรุณาระบุหัวข้อเรื่อง');return}
+  const btn=document.getElementById('genBtn');
+  const load=document.getElementById('loading');
+  const out=document.getElementById('storyOut');
+  const errMsg=document.getElementById('errorMsg');
+  btn.disabled=true;
+  load.style.display='block';
+  out.style.display='none';
+  errMsg.style.display='none';
+  try{
+    const res=await fetch(API_URL+'?topic='+encodeURIComponent(topic));
+    const data=await res.json();
+    if(data.error)throw new Error(data.error);
+    if(!data.story)throw new Error('ไม่ได้รับเรื่องราว');
+    renderStory(data.story);
+    out.style.display='block';
+    out.scrollIntoView({behavior:'smooth'});
+  }catch(err){
+    errMsg.textContent='❌ '+err.message;
+    errMsg.style.display='block';
+  }finally{
+    btn.disabled=false;
+    load.style.display='none';
+  }
+}
+
+function renderStory(txt){
+  const out=document.getElementById('storyOut');
+  out.innerHTML='';
+  txt.split(/\n\n+/).forEach(pTxt=>{
+    if(!pTxt.trim())return;
+    const p=document.createElement('p');
+    p.style.marginBottom='1.5rem';
+    pTxt.split(/(\s+)/).forEach(token=>{
+      if(/[a-zA-Z]/.test(token)){
+        const span=document.createElement('span');
+        span.className='word-clickable';
+        span.textContent=token;
+        span.onmouseover=e=>showTranslation(e,token);
+        span.onmouseout=hideTooltip;
+        span.onclick=()=>speakWord(token,span);
+        p.appendChild(span);
+      }else{
+        p.appendChild(document.createTextNode(token));
+      }
     });
+    out.appendChild(p);
   });
+}
 
-  function getApiUrl() {
-    return localStorage.getItem(STORAGE_KEY) || '';
-  }
+async function showTranslation(e,word){
+  const cw=word.replace(/[.,!?;:"'()]/g,'').toLowerCase();
+  const tb=document.getElementById('tbox');
+  tb.style.left=(window.scrollX+e.target.getBoundingClientRect().left)+'px';
+  tb.style.top=(window.scrollY+e.target.getBoundingClientRect().bottom+8)+'px';
+  tb.style.display='block';
+  tb.innerHTML='กำลังแปล...';
+  try{
+    const r=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=th&dt=t&q='+encodeURIComponent(cw));
+    const d=await r.json();
+    tb.innerHTML='<strong>'+cw+'</strong><br><span style="color:#fbbf24">🇹🇭 '+d[0][0][0]+'</span>';
+  }catch(err){tb.innerHTML=cw}
+}
 
-  function showSetup() {
-    document.getElementById('setupSection').style.display = 'block';
-    document.getElementById('apiUrl').value = getApiUrl();
-  }
+function hideTooltip(){document.getElementById('tbox').style.display='none'}
 
-  function hideSetup() {
-    document.getElementById('setupSection').style.display = 'none';
-  }
-
-  function saveSetup() {
-    const url = document.getElementById('apiUrl').value.trim();
-    if (!url) {
-      alert('กรุณาใส่ URL ของ Google Apps Script');
-      return;
-    }
-    if (!url.startsWith('https://script.google.com/')) {
-      alert('URL ไม่ถูกต้อง ต้องเป็น https://script.google.com/...');
-      return;
-    }
-    localStorage.setItem(STORAGE_KEY, url);
-    hideSetup();
-    checkApiStatus();
-    alert('บันทึกการตั้งค่าเรียบร้อย!');
-  }
-
-  async function checkApiStatus() {
-    const badge = document.getElementById('statusBadge');
-    const url = getApiUrl();
-    
-    if (!url) {
-      badge.textContent = '⚠️ ยังไม่ได้ตั้งค่า';
-      badge.className = 'status-badge error';
-      showSetup();
-      return;
-    }
-
-    badge.textContent = '● กำลังตรวจสอบ...';
-    
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.status === 'ok') {
-        badge.textContent = `● ระบบพร้อมใช้งาน (${data.version || 'OK'})`;
-        badge.className = 'status-badge';
-      } else {
-        throw new Error('Invalid response');
-      }
-    } catch (err) {
-      badge.textContent = '⚠️ เชื่อมต่อไม่ได้';
-      badge.className = 'status-badge error';
-    }
-  }
-
-  // ===== ใช้ GET แทน POST เพื่อแก้ปัญหา CORS =====
-  async function generate() {
-    const topic = document.getElementById('topic').value.trim();
-    if (!topic) {
-      alert('กรุณาระบุหัวข้อเรื่อง');
-      return;
-    }
-
-    const apiUrl = getApiUrl();
-    if (!apiUrl) {
-      alert('กรุณาตั้งค่า API URL ก่อน');
-      showSetup();
-      return;
-    }
-
-    const btn = document.getElementById('genBtn');
-    const load = document.getElementById('loading');
-    const out = document.getElementById('storyOut');
-    const errMsg = document.getElementById('errorMsg');
-
-    btn.disabled = true;
-    load.style.display = 'block';
-    out.style.display = 'none';
-    errMsg.style.display = 'none';
-
-    try {
-      // ใช้ GET request พร้อม parameter
-      const fullUrl = apiUrl + '?topic=' + encodeURIComponent(topic);
-      const res = await fetch(fullUrl);
-      const data = await res.json();
-      
-      if (data.error) {
-        throw new Error(data.error);
-      }
-      
-      if (!data.story) {
-        throw new Error('ไม่ได้รับเรื่องราวจากระบบ');
-      }
-
-      renderStory(data.story);
-      out.style.display = 'block';
-      out.scrollIntoView({ behavior: 'smooth' });
-
-    } catch (err) {
-      console.error('Generation error:', err);
-      errMsg.textContent = '❌ ' + (err.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
-      errMsg.style.display = 'block';
-    } finally {
-      btn.disabled = false;
-      load.style.display = 'none';
-    }
-  }
-
-  function renderStory(txt) {
-    const out = document.getElementById('storyOut');
-    out.innerHTML = '';
-    
-    const paragraphs = txt.split(/\n\n+/);
-    
-    paragraphs.forEach(pTxt => {
-      if (!pTxt.trim()) return;
-      
-      const p = document.createElement('p');
-      p.style.marginBottom = '1.5rem';
-      
-      const tokens = pTxt.split(/(\s+)/);
-      
-      tokens.forEach(token => {
-        if (/[a-zA-Z]/.test(token)) {
-          const span = document.createElement('span');
-          span.className = 'word-clickable';
-          span.textContent = token;
-          span.addEventListener('mouseover', (e) => showTranslation(e, token));
-          span.addEventListener('mouseout', hideTooltip);
-          span.addEventListener('click', () => speakWord(token, span));
-          p.appendChild(span);
-        } else {
-          p.appendChild(document.createTextNode(token));
-        }
-      });
-      
-      out.appendChild(p);
-    });
-  }
-
-  async function showTranslation(e, word) {
-    const cleanWord = word.replace(/[.,!?;:"'()]/g, '').toLowerCase();
-    const tb = document.getElementById('tbox');
-    
-    const rect = e.target.getBoundingClientRect();
-    tb.style.left = (window.scrollX + rect.left) + 'px';
-    tb.style.top = (window.scrollY + rect.bottom + 8) + 'px';
-    tb.style.display = 'block';
-    tb.innerHTML = '<span style="opacity:0.7">กำลังแปล...</span>';
-
-    try {
-      const r = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=th&dt=t&q=${encodeURIComponent(cleanWord)}`);
-      const d = await r.json();
-      const translation = d[0][0][0];
-      
-      tb.innerHTML = `
-        <div><strong style="font-size:1.1em">${cleanWord}</strong></div>
-        <div style="color:#fbbf24; margin-top:4px">🇹🇭 ${translation}</div>
-        <div style="font-size:0.75em; opacity:0.6; margin-top:4px">คลิกเพื่อฟังเสียง</div>
-      `;
-    } catch (err) {
-      tb.innerHTML = `<strong>${cleanWord}</strong><br><span style="opacity:0.6">ไม่สามารถแปลได้</span>`;
-    }
-  }
-
-  function hideTooltip() {
-    document.getElementById('tbox').style.display = 'none';
-  }
-
-  function speakWord(word, element) {
-    const cleanWord = word.replace(/[.,!?;:"'()]/g, '');
-    element.classList.add('speaking');
-    setTimeout(() => element.classList.remove('speaking'), 500);
-    
-    const utterance = new SpeechSynthesisUtterance(cleanWord);
-    utterance.lang = 'en-US';
-    utterance.rate = 0.8;
-    speechSynthesis.speak(utterance);
-  }
+function speakWord(word,el){
+  const cw=word.replace(/[.,!?;:"'()]/g,'');
+  el.classList.add('speaking');
+  setTimeout(()=>el.classList.remove('speaking'),500);
+  const ut=new SpeechSynthesisUtterance(cw);
+  ut.lang='en-US';
+  ut.rate=0.8;
+  speechSynthesis.speak(ut);
+}
 </script>
 </body>
 </html>
